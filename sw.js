@@ -1,6 +1,6 @@
 // Guarda os arquivos do app para funcionar sem internet.
 // Sempre tenta a versão mais nova primeiro; se estiver offline, usa a guardada.
-const CACHE = 'financas-v3';
+const CACHE = 'financas-v4';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
