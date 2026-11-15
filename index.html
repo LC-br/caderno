@@ -181,6 +181,31 @@ nav.tabs svg{width:24px;height:24px}
 .gauge{height:8px;background:var(--s2);border-radius:4px;margin:10px 0 8px;overflow:hidden}
 .gauge i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#3D6BFF,#86A8FF)}
 .gauge.ok i{background:linear-gradient(90deg,#2FB985,#46D39A)}
+.cal{background:var(--s1);border-radius:20px;padding:12px 12px 14px;margin-bottom:14px}
+.cal .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal .ch button{width:36px;height:36px;border-radius:10px;font-size:20px;color:var(--ink2)}
+.cal .ch b{font-weight:600}
+.cal .ch b::first-letter{text-transform:uppercase}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cgrid .wd{text-align:center;font-size:11px;color:var(--ink3);padding-bottom:2px}
+.cgrid button{aspect-ratio:1;border-radius:10px;font-size:14px;color:var(--ink2);display:grid;place-items:center;border:2px solid transparent;font-family:var(--num)}
+.cgrid button.hoje{color:var(--ink);font-weight:700}
+.cgrid button.sel{border-color:var(--ink)}
+.cgrid button.fut{opacity:.35}
+.clegend{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:10px;font-size:11px;color:var(--ink3)}
+.clegend i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.wk .row{padding:9px 0;gap:10px}
+.wk .row:first-of-type{border-top:0}
+.wk .wl{width:34px;color:var(--ink2);font-size:14px}
+.wk .wb{flex:1;height:10px;background:var(--s2);border-radius:5px;overflow:hidden}
+.wk .wb i{display:block;height:100%;background:#3987e5;border-radius:0 4px 4px 0}
+.wk .rv{min-width:96px;text-align:right;font-size:14px}
+.cores{display:flex;flex-wrap:wrap;gap:10px}
+.cores button{width:34px;height:34px;border-radius:17px;border:3px solid transparent}
+.cores button.on{border-color:var(--ink)}
+.subl .row{padding:10px 12px}
+.split{background:var(--s2);border-radius:14px;padding:12px;margin:-4px 0 14px}
+.code{display:block;background:var(--s2);border-radius:10px;padding:10px 12px;font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--blue2);word-break:break-all;margin:6px 0 10px}
 .toast.acao{pointer-events:auto;display:flex;align-items:center;gap:14px;padding:8px 8px 8px 16px}
 .toast.acao button{background:rgba(255,255,255,.12);color:var(--gold);font-weight:600;padding:7px 12px;border-radius:9px;font-size:15px}
 .ttag{font-size:12px;color:var(--blue2)}
@@ -282,6 +307,8 @@ function load() {
   S.metas ??= [];
   S.ultimoBackup ??= null;
   S.ocultar ??= false;
+  S.receber ??= [];
+  S.cats ??= { gasto: CATS_G.map(c => ({ ...c, subs: [] })), entrada: CATS_E.map(c => ({ ...c, subs: [] })) };
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
@@ -291,7 +318,13 @@ function save() {
 const card = id => S.cards.find(c => c.id === id);
 const isCredito = l => l.tipo === 'gasto' && !!card(l.pag);
 const isPai = l => isCredito(l) && !card(l.pag).afeta;
-const catOf = l => (l.tipo === 'entrada' ? CATS_E : CATS_G).find(c => c.id === l.cat) || { nome: 'Outros', cor: '#7d89a3' };
+const catsDe = tipo => tipo === 'entrada' ? S.cats.entrada : S.cats.gasto;
+const catOf = l => catsDe(l.tipo).find(c => c.id === l.cat) || { id: l.cat, nome: 'Outros', cor: '#7d89a3', subs: [] };
+const subOf = l => l.sub ? (catOf(l).subs || []).find(x => x.id === l.sub) : null;
+const catNome = l => { const s = subOf(l); return catOf(l).nome + (s ? ' › ' + s.nome : ''); };
+const CORES = ['#d95926', '#3987e5', '#d55181', '#c98500', '#199e70', '#9085e9', '#e66767', '#0ca30c', '#46b4c8', '#7d89a3'];
+// valor que conta nos resumos: só a sua parte de um gasto dividido; reembolsos não contam como entrada
+const valRel = l => l.tipo === 'gasto' ? (l.minha ?? l.valor) : (l.reemb ? 0 : l.valor);
 const pagNome = id => (PAGS_FIXOS.find(p => p.id === id) || card(id) || { nome: '' }).nome;
 
 /* ---------- faturas ---------- */
@@ -319,16 +352,16 @@ function refsCard(cid) {
 const pendentes = cid => refsCard(cid).filter(r => !pagoF(cid, r));
 
 /* ---------- saldo ---------- */
-function saldo() {
+function saldo(ate) {
   if (S.saldoInicial == null) return null;
-  const di = S.dataInicial, now = nowStr();
+  const di = S.dataInicial, now = ate || nowStr();
   let s = S.saldoInicial;
   for (const l of S.lanc) {
     if (l.data < di || l.data > now) continue;
     if (l.tipo === 'entrada') s += l.valor;
     else if (!card(l.pag)) s -= l.valor; // Pix, débito, dinheiro saem na hora
   }
-  for (const p of S.pags) if (p.data >= di) s -= p.valor; // fatura paga sai do saldo
+  for (const p of S.pags) if (p.data >= di && p.data <= now) s -= p.valor; // fatura paga sai do saldo
   return s;
 }
 function totalPendente() {
@@ -338,7 +371,7 @@ function totalPendente() {
 }
 
 /* ---------- totais (Cartão pai fica de fora) ---------- */
-const soma = (prefix, tipo) => S.lanc.filter(l => l.tipo === tipo && !isPai(l) && l.data.startsWith(prefix)).reduce((a, l) => a + l.valor, 0);
+const soma = (prefix, tipo) => S.lanc.filter(l => l.tipo === tipo && !isPai(l) && l.data.startsWith(prefix)).reduce((a, l) => a + valRel(l), 0);
 
 /* ---------- recorrentes (parcelas, assinaturas, salário) ---------- */
 const occ = (r, k) => `${dateIn(addM(r.inicio, k), r.dia)}T${r.hora || '12:00'}`;
@@ -351,7 +384,7 @@ function gerar() {
       if (d > now) break;
       const k = r.gerados;
       S.lanc.push({ id: uid(), tipo: r.tipo, valor: r.valor, cat: r.cat, pag: r.pag, data: d,
-        desc: r.total ? `${r.desc} (${k + 1}/${r.total})` : r.desc, rec: r.id, ...(r.tags && r.tags.length ? { tags: r.tags } : {}) });
+        desc: r.total ? `${r.desc} (${k + 1}/${r.total})` : r.desc, rec: r.id, ...(r.sub ? { sub: r.sub } : {}), ...(r.tags && r.tags.length ? { tags: r.tags } : {}) });
       r.gerados++; mudou = true;
     }
   }
@@ -374,12 +407,12 @@ function previsto(c, ref) {
 /* =========================================================
    INTERFACE
    ========================================================= */
-const ui = { bq: '', bPer: 'mes', bTipo: 'todos', bCat: null, bPag: null, voltar: 'home', tab: 'home', dia: todayStr(), mes: ymNow(), ano: +ymNow().slice(0, 4), modo: 'mes', selCat: null, selBar: null, abertaF: null };
+const ui = { ordem: 'data', catTipo: 'gasto', selSaldo: null, cA: addM(ymNow(), -1), cB: ymNow(), bq: '', bPer: 'mes', bTipo: 'todos', bCat: null, bPag: null, voltar: 'home', tab: 'home', dia: todayStr(), mes: ymNow(), ano: +ymNow().slice(0, 4), modo: 'mes', selCat: null, selBar: null, abertaF: null };
 
 function render() {
   gerar();
   document.querySelectorAll('nav.tabs [data-act=tab]').forEach(b => b.classList.toggle('on', b.dataset.id === ui.tab));
-  $('#view').innerHTML = ({ home: vHome, dia: vDia, resumo: vResumo, faturas: vFaturas, ajustes: vAjustes, busca: vBusca })[ui.tab]();
+  $('#view').innerHTML = ({ home: vHome, dia: vDia, resumo: vResumo, faturas: vFaturas, ajustes: vAjustes, busca: vBusca, receber: vReceber, cats: vCats })[ui.tab]();
   // diminui a fonte dos números que não cabem no quadrinho
   document.querySelectorAll('.stat .num').forEach(el => { let f = 17; while (el.scrollWidth > el.clientWidth && f > 11) el.style.fontSize = (--f) + 'px'; });
 }
@@ -391,7 +424,7 @@ function rowL(l, opts = {}) {
   return `<button class="row ${pai ? 'muted' : ''}" data-act="editL" data-id="${l.id}">
     <span class="dot" style="background:${c.cor}"></span>
     <span class="rmain"><span class="rt">${esc(l.desc || c.nome)}</span>
-      <span class="rs"><span>${esc(c.nome)}</span>${l.tipo === 'gasto' ? `<span>${esc(pagNome(l.pag))}</span>` : ''}<span>${quando}</span>${pai ? '<span class="tag">não conta</span>' : ''}${(l.tags || []).map(t => `<span class="ttag">#${esc(t)}</span>`).join('')}</span></span>
+      <span class="rs"><span>${esc(catNome(l))}</span>${l.tipo === 'gasto' ? `<span>${esc(pagNome(l.pag))}</span>` : ''}<span>${quando}</span>${pai ? '<span class="tag">não conta</span>' : ''}${l.minha != null ? `<span class="tag">sua parte ${fmt(l.minha)}</span>` : ''}${l.reemb ? '<span class="tag">reembolso</span>' : ''}${(l.tags || []).map(t => `<span class="ttag">#${esc(t)}</span>`).join('')}</span></span>
     <span class="rv ${l.tipo} ${pai ? 'muted' : ''}">${sinal} ${fmt(l.valor)}</span></button>`;
 }
 
@@ -426,6 +459,7 @@ function vHome() {
     <div class="stat"><div class="lbl">Gasto no mês</div><div class="num">${fmt(soma(mes, 'gasto'))}</div></div>
     <div class="stat"><div class="lbl">Entrou no mês</div><div class="num" style="color:var(--green)">${fmt(soma(mes, 'entrada'))}</div></div>
   </div>
+  ${aReceberResumo()}
   ${prox.length ? `<h2>Faturas a pagar</h2><div class="list">${prox.map(p => `
     <button class="row" data-act="tab" data-id="faturas"><span class="rmain"><span class="rt">${esc(p.c.nome)}</span>
     <span class="rs"><span>vence ${dm(vencimento(p.c, p.r))}</span><span>${statusF(p.c, p.r)}</span></span></span>
@@ -438,15 +472,17 @@ function vHome() {
 /* ---------- Dia ---------- */
 function vDia() {
   const d = ui.dia;
-  const itens = S.lanc.filter(l => l.data.startsWith(d)).sort((a, b) => b.data.localeCompare(a.data));
+  const itens = ordenar(S.lanc.filter(l => l.data.startsWith(d)));
   const g = soma(d, 'gasto'), e = soma(d, 'entrada');
   return `
   <div class="top"><h1>Dia</h1><div class="topbtns">${d !== todayStr() ? `<button class="btn sm" data-act="diaHoje">Hoje</button>` : ''}<button class="iconbtn" data-act="buscar" aria-label="Buscar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button></div></div>
-  <div class="pnav"><button data-act="diaMv" data-id="-1" aria-label="Dia anterior">‹</button><span class="pl">${nomeDia(d)}</span><button data-act="diaMv" data-id="1" aria-label="Próximo dia">›</button></div>
+  ${calendario(d)}
+  <h2 style="margin-top:4px">${nomeDia(d)}</h2>
   <div class="two" style="margin-bottom:12px">
     <div class="stat"><div class="lbl">Gastos</div><div class="num">${fmt(g)}</div></div>
     <div class="stat"><div class="lbl">Entradas</div><div class="num" style="color:var(--green)">${fmt(e)}</div></div>
   </div>
+  ${itens.length > 1 ? seletorOrdem() : ''}
   ${itens.length ? `<div class="list">${itens.map(l => rowL(l)).join('')}</div>` : `<div class="emptybox">Nada registrado neste dia.</div>`}`;
 }
 
@@ -463,6 +499,133 @@ function avisoBackup() {
   return `<button class="warnbar" data-act="exportar"><span>Seu último backup foi há ${d} dias. Toque aqui para <b>exportar agora</b>.</span></button>`;
 }
 
+/* ---------- Ordenação de listas ---------- */
+function ordenar(lista) {
+  const o = ui.ordem, a = [...lista];
+  if (o === 'valor') return a.sort((x, y) => y.valor - x.valor || y.data.localeCompare(x.data));
+  if (o === 'cat') return a.sort((x, y) => catNome(x).localeCompare(catNome(y), 'pt') || y.data.localeCompare(x.data));
+  return a.sort((x, y) => y.data.localeCompare(x.data));
+}
+const seletorOrdem = () => `<div class="hscroll" style="align-items:center"><span class="sub" style="flex:none;margin-right:2px">Ordenar:</span>${[['data', 'Mais recentes'], ['valor', 'Maior valor'], ['cat', 'Categoria']].map(([id, n]) => `<button class="chip ${ui.ordem === id ? 'on' : ''}" data-act="ordem" data-id="${id}">${n}</button>`).join('')}</div>`;
+
+/* ---------- Calendário ---------- */
+const RAMPA = ['#15305a', '#1d4a8a', '#2a68c4', '#3d86e8', '#86b6ef'];
+function calendario(dSel) {
+  const ym = dSel.slice(0, 7), n = dim(ym), hoje = todayStr();
+  const primeiro = new Date(+ym.slice(0, 4), +ym.slice(5, 7) - 1, 1).getDay();
+  const vals = [...Array(n)].map((_, i) => soma(`${ym}-${pad(i + 1)}`, 'gasto'));
+  const max = Math.max(...vals, 0);
+  let cel = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(w => `<span class="wd">${w}</span>`).join('');
+  for (let i = 0; i < primeiro; i++) cel += '<span></span>';
+  vals.forEach((v, i) => {
+    const ds = `${ym}-${pad(i + 1)}`;
+    let st = '';
+    if (v > 0 && max > 0) { const k = Math.min(4, Math.floor(v / max * 5)); st = `background:${RAMPA[k]};color:${k >= 4 ? '#08111F' : '#EEF2FA'}`; }
+    cel += `<button class="${ds === hoje ? 'hoje' : ''} ${ds === dSel ? 'sel' : ''} ${ds > hoje ? 'fut' : ''}" style="${st}" data-act="diaSel" data-id="${ds}" aria-label="${i + 1}: ${fmt(v)}">${i + 1}</button>`;
+  });
+  return `<div class="cal"><div class="ch"><button data-act="calMv" data-id="-1" aria-label="Mês anterior">‹</button><b>${nomeMes(ym)}</b><button data-act="calMv" data-id="1" aria-label="Próximo mês">›</button></div>
+    <div class="cgrid">${cel}</div>
+    <div class="clegend">menos ${RAMPA.map(c => `<i style="background:${c}"></i>`).join('')} mais</div></div>`;
+}
+
+/* ---------- Contas a receber ---------- */
+const pendRec = () => S.receber.filter(r => !r.recebido);
+function aReceberResumo() {
+  const p = pendRec(); if (!p.length) return '';
+  const t = p.reduce((a, r) => a + r.valor, 0), pessoas = new Set(p.map(r => norm(r.pessoa))).size;
+  return `<h2>A receber</h2><div class="list"><button class="row" data-act="tab" data-id="receber"><span class="rmain"><span class="rt">${p.length} ${p.length === 1 ? 'conta' : 'contas'} em aberto</span>
+    <span class="rs"><span>${pessoas} ${pessoas === 1 ? 'pessoa' : 'pessoas'}</span></span></span><span class="rv entrada">${fmt(t)}</span></button></div>`;
+}
+function vReceber() {
+  const p = pendRec().sort((a, b) => a.data.localeCompare(b.data));
+  const feitos = S.receber.filter(r => r.recebido).sort((a, b) => b.recebido.data.localeCompare(a.recebido.data)).slice(0, 10);
+  const porPessoa = {};
+  for (const r of p) { const k = r.pessoa; porPessoa[k] = (porPessoa[k] || 0) + r.valor; }
+  return `<div class="top"><h1>A receber</h1><button class="btn sm" data-act="tab" data-id="home">Fechar</button></div>
+  ${p.length ? `<div class="two" style="margin-bottom:12px"><div class="stat"><div class="lbl">Total em aberto</div><div class="num" style="color:var(--green)">${fmt(p.reduce((a, r) => a + r.valor, 0))}</div></div>
+    <div class="stat"><div class="lbl">Quem deve mais</div><div class="num">${esc(Object.entries(porPessoa).sort((a, b) => b[1] - a[1])[0][0])}</div></div></div>
+    <div class="list">${p.map(r => `<button class="row" data-act="abrirRec" data-id="${r.id}"><span class="rmain"><span class="rt">${esc(r.pessoa)}</span>
+      <span class="rs"><span>${esc(r.desc)}</span><span>${dm(r.data)}</span></span></span><span class="rv entrada">${fmt(r.valor)}</span></button>`).join('')}</div>`
+    : `<div class="emptybox">Ninguém te deve nada agora. Ao lançar um gasto, use "Dividir com outras pessoas", ou cadastre uma conta abaixo.</div>`}
+  <div style="margin-top:10px"><button class="btn full" data-act="novaReceber">Nova conta a receber</button></div>
+  ${feitos.length ? `<h2>Recebidas recentemente</h2><div class="list">${feitos.map(r => `<div class="row"><span class="rmain"><span class="rt">${esc(r.pessoa)}</span>
+    <span class="rs"><span>${esc(r.desc)}</span><span>recebido ${dm(r.recebido.data)}</span></span></span><span class="rv">${fmt(r.valor)}</span>
+    <button class="btn sm" data-act="desfazerRec" data-id="${r.id}">Desfazer</button></div>`).join('')}</div>` : ''}
+  <p class="sub" style="margin:14px 2px 0">Quando você marca como recebido, o valor entra no seu saldo como reembolso. Ele não conta como entrada nos resumos, porque só repõe um gasto que não era seu.</p>`;
+}
+
+/* ---------- Gráficos extras ---------- */
+function graficoSaldo(ym) {
+  if (S.saldoInicial == null) return '';
+  if (S.ocultar) return `<h2>Saldo no mês</h2><div class="emptybox">Saldo oculto. Toque no olho do Início para mostrar.</div>`;
+  const ini = S.dataInicial.slice(0, 10), hoje = todayStr();
+  const dias = [];
+  for (let i = 1; i <= dim(ym); i++) { const d = `${ym}-${pad(i)}`; if (d >= ini && d <= hoje) dias.push(d); }
+  if (dias.length < 2) return '';
+  const v = dias.map(d => saldo(d === hoje ? nowStr() : d + 'T23:59'));
+  const W = 340, H = 170, L = 4, T = 14, B = H - 22;
+  let mn = Math.min(...v), mx = Math.max(...v); if (mx - mn < 1) { mx += 1; mn -= 1; }
+  const pad_ = (mx - mn) * .1; mn -= pad_; mx += pad_;
+  const n = dim(ym), x = d => L + (W - 2 * L) * (+d.slice(8, 10) - 1) / (n - 1), y = val => T + (B - T) * (1 - (val - mn) / (mx - mn));
+  const pts = dias.map((d, i) => `${x(d).toFixed(1)},${y(v[i]).toFixed(1)}`).join(' ');
+  const sel = ui.selSaldo != null && ui.selSaldo < dias.length ? ui.selSaldo : dias.length - 1;
+  let out = `<line x1="0" x2="${W}" y1="${B}" y2="${B}" stroke="#22355C"/>`;
+  if (mn < 0 && mx > 0) out += `<line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="#FF8080" stroke-dasharray="3 4" opacity=".5"/>`;
+  out += `<polyline points="${pts}" fill="none" stroke="#86A8FF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  out += `<line x1="${x(dias[sel])}" x2="${x(dias[sel])}" y1="${T}" y2="${B}" stroke="#6F7FA0" stroke-dasharray="2 3"/>`;
+  out += `<circle cx="${x(dias[sel])}" cy="${y(v[sel])}" r="5" fill="#86A8FF" stroke="#0F1B30" stroke-width="2"/>`;
+  [1, Math.ceil(n / 2), n].forEach(d => out += `<text x="${x(`${ym}-${pad(d)}`)}" y="${H - 6}" text-anchor="${d === 1 ? 'start' : d === n ? 'end' : 'middle'}" fill="#6F7FA0" font-size="11">${d}</text>`);
+  const cw = (W - 2 * L) / (n - 1);
+  dias.forEach((d, i) => out += `<rect x="${x(d) - cw / 2}" y="0" width="${cw}" height="${H}" fill="transparent" data-act="selSaldo" data-id="${i}"/>`);
+  return `<h2>Saldo no mês</h2><div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Saldo ao fim de cada dia">${out}</svg>
+    <div class="cap">dia ${+dias[sel].slice(8, 10)}: <b class="num">${fmt(v[sel])}</b></div></div>`;
+}
+function porSemana(prefix) {
+  const t = [0, 0, 0, 0, 0, 0, 0];
+  for (const l of S.lanc) if (l.tipo === 'gasto' && !isPai(l) && l.data.startsWith(prefix)) {
+    const [y, m, d] = l.data.slice(0, 10).split('-').map(Number); t[new Date(y, m - 1, d).getDay()] += valRel(l);
+  }
+  const max = Math.max(...t); if (!max) return '';
+  const ordem = [1, 2, 3, 4, 5, 6, 0], nomes = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  return `<h2>Por dia da semana</h2><div class="chart wk">${ordem.map(i => `<div class="row"><span class="wl">${nomes[i]}</span><span class="wb"><i style="width:${t[i] / max * 100}%"></i></span><span class="rv">${fmt(t[i])}</span></div>`).join('')}</div>`;
+}
+function subsDe(prefix, catId) {
+  const c = S.cats.gasto.find(x => x.id === catId); if (!c || !(c.subs || []).length) return '';
+  const m = new Map();
+  for (const l of S.lanc) if (l.tipo === 'gasto' && !isPai(l) && l.cat === catId && l.data.startsWith(prefix)) { const k = subOf(l)?.nome || 'Sem subcategoria'; m.set(k, (m.get(k) || 0) + valRel(l)); }
+  if (!m.size) return '';
+  const tot = [...m.values()].reduce((a, b) => a + b, 0);
+  return `<div class="flabel" style="margin-top:14px">Dentro de ${esc(c.nome)}</div><div class="legend">${[...m.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `<div class="row"><span class="dot" style="background:${c.cor};opacity:.6"></span><span class="rmain"><span class="rt">${esc(k)}</span></span><span class="pct">${Math.round(v / tot * 100)}%</span><span class="rv">${fmt(v)}</span></div>`).join('')}</div>`;
+}
+function vComparar() {
+  const a = ui.cA, b = ui.cB;
+  const linha = (nome, va, vb, bomSubir, cor) => {
+    const d = vb - va, bom = bomSubir ? d >= 0 : d <= 0;
+    return `<div class="row">${cor ? `<span class="dot" style="background:${cor}"></span>` : ''}<span class="rmain"><span class="rt">${esc(nome)}</span>
+      <span class="rs"><span>${fmt(va)} → ${fmt(vb)}</span></span></span><span class="rv" style="color:${Math.abs(d) < .005 ? 'var(--ink3)' : bom ? 'var(--green)' : 'var(--red)'}">${d > 0 ? '+' : d < 0 ? '−' : ''}${fmt(Math.abs(d))}</span></div>`;
+  };
+  const ea = soma(a, 'entrada'), eb = soma(b, 'entrada'), ga = soma(a, 'gasto'), gb = soma(b, 'gasto');
+  const ca = new Map(porCategoria(a).map(c => [c.id, c.v])), cb = new Map(porCategoria(b).map(c => [c.id, c.v]));
+  const cats = S.cats.gasto.filter(c => ca.has(c.id) || cb.has(c.id)).map(c => ({ c, va: ca.get(c.id) || 0, vb: cb.get(c.id) || 0 }))
+    .sort((x, y) => Math.abs(y.vb - y.va) - Math.abs(x.vb - x.va));
+  return `<div class="two" style="margin-bottom:12px">
+      <div class="field" style="margin:0"><label for="cA">Mês A</label><input id="cA" type="month" value="${a}"></div>
+      <div class="field" style="margin:0"><label for="cB">Mês B</label><input id="cB" type="month" value="${b}"></div></div>
+    <div class="chart legend" style="margin-top:0">${linha('Entradas', ea, eb, true)}${linha('Gastos', ga, gb, false)}${linha('Sobrou', ea - ga, eb - gb, true)}</div>
+    ${cats.length ? `<h2>Por categoria <small>maiores mudanças primeiro</small></h2><div class="chart legend" style="margin-top:0">${cats.map(x => linha(x.c.nome, x.va, x.vb, false, x.c.cor)).join('')}</div>` : ''}
+    <p class="sub" style="margin:12px 2px 0">Verde é mudança boa (gastou menos ou entrou mais). Vermelho é o contrário.</p>`;
+}
+
+/* ---------- Categorias ---------- */
+function vCats() {
+  const t = ui.catTipo, lista = catsDe(t);
+  return `<div class="top"><h1>Categorias</h1><button class="btn sm" data-act="tab" data-id="ajustes">Voltar</button></div>
+  <div class="seg"><button class="${t === 'gasto' ? 'on' : ''}" data-act="catTipo" data-id="gasto">Gastos</button><button class="${t === 'entrada' ? 'on' : ''}" data-act="catTipo" data-id="entrada">Entradas</button></div>
+  <div class="list">${lista.map(c => `<button class="row" data-act="editCat" data-id="${c.id}"><span class="dot" style="background:${c.cor}"></span><span class="rmain"><span class="rt">${esc(c.nome)}</span>
+    <span class="rs">${(c.subs || []).length ? `<span>${c.subs.map(x => esc(x.nome)).join(', ')}</span>` : '<span>sem subcategorias</span>'}${c.oculta ? '<span class="tag">oculta</span>' : ''}</span></span><span class="sub">Editar</span></button>`).join('')}</div>
+  <div style="margin-top:10px"><button class="btn full" data-act="editCat" data-id="">Nova categoria</button></div>`;
+}
+
 /* ---------- Busca ---------- */
 function resultadosBusca() {
   const q = norm(ui.bq.trim()), ym = ymNow();
@@ -472,12 +635,12 @@ function resultadosBusca() {
     if (ui.bTipo !== 'todos' && l.tipo !== ui.bTipo) return false;
     if (ui.bCat && l.cat !== ui.bCat) return false;
     if (ui.bPag && (l.tipo !== 'gasto' || l.pag !== ui.bPag)) return false;
-    if (q && !norm(`${l.desc} ${catOf(l).nome} ${l.tipo === 'gasto' ? pagNome(l.pag) : ''} ${(l.tags || []).map(t => '#' + t).join(' ')}`).includes(q)) return false;
+    if (q && !norm(`${l.desc} ${catNome(l)} ${l.tipo === 'gasto' ? pagNome(l.pag) : ''} ${(l.tags || []).map(t => '#' + t).join(' ')}`).includes(q)) return false;
     return true;
-  }).sort((a, b) => b.data.localeCompare(a.data));
+  });
   const g = r.filter(l => l.tipo === 'gasto').reduce((a, l) => a + l.valor, 0);
   const e = r.filter(l => l.tipo === 'entrada').reduce((a, l) => a + l.valor, 0);
-  const lista = r.slice(0, 200);
+  const lista = ordenar(r).slice(0, 200);
   return `<div class="two" style="margin-bottom:6px">
       <div class="stat"><div class="lbl">Gastos</div><div class="num">${fmt(g)}</div></div>
       <div class="stat"><div class="lbl">Entradas</div><div class="num" style="color:var(--green)">${fmt(e)}</div></div></div>
@@ -488,7 +651,7 @@ function todasTags() { const s = new Set(); for (const l of S.lanc) for (const t
 function vBusca() {
   const per = [['mes', 'Este mês'], ['3m', '3 meses'], ['ano', 'Este ano'], ['tudo', 'Tudo']];
   const tipos = [['todos', 'Todos'], ['gasto', 'Gastos'], ['entrada', 'Entradas']];
-  const cats = ui.bTipo === 'entrada' ? CATS_E : ui.bTipo === 'gasto' ? CATS_G : [...CATS_G, ...CATS_E.filter(c => c.id !== 'outrase')];
+  const cats = ui.bTipo === 'entrada' ? S.cats.entrada : ui.bTipo === 'gasto' ? S.cats.gasto : [...S.cats.gasto, ...S.cats.entrada.filter(c => c.id !== 'outrase')];
   const chip = (act, id, nome, on, cor) => `<button class="chip ${on ? 'on' : ''}" data-act="${act}" data-id="${id}">${cor ? `<span class="dot" style="background:${cor}"></span>` : ''}${esc(nome)}</button>`;
   return `<div class="top"><h1>Buscar</h1><button class="btn sm" data-act="tab" data-id="${ui.voltar}">Fechar</button></div>
   <div class="search">${'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>'}<input id="bq" type="search" placeholder="Ex.: uber, mercado, show" value="${esc(ui.bq)}" autocomplete="off"></div>
@@ -497,6 +660,7 @@ function vBusca() {
   <div class="hscroll">${chip('bCat', '', 'Todas as categorias', !ui.bCat)}${cats.map(c => chip('bCat', c.id, c.nome, ui.bCat === c.id, c.cor)).join('')}</div>
   ${ui.bTipo !== 'entrada' ? `<div class="hscroll">${chip('bPag', '', 'Qualquer pagamento', !ui.bPag)}${[...PAGS_FIXOS, ...S.cards].map(p => chip('bPag', p.id, p.nome, ui.bPag === p.id)).join('')}</div>` : ''}
   ${todasTags().length ? `<div class="hscroll">${todasTags().map(t => `<button class="chip ${norm(ui.bq) === '#' + t ? 'on' : ''}" data-act="bTag" data-id="${esc(t)}">#${esc(t)}</button>`).join('')}</div>` : ''}
+  ${seletorOrdem()}
   <div id="bres">${resultadosBusca()}</div>`;
 }
 
@@ -547,8 +711,8 @@ function donut(itens, total) {
   const sel = itens.find(i => i.id === ui.selCat);
   const t1 = sel ? sel.nome : 'Gastos', t2 = fmt(sel ? sel.v : total);
   return `<svg viewBox="0 0 220 220" style="max-width:240px;margin:0 auto" role="img" aria-label="Gastos por categoria">${out}
-    <text x="110" y="102" text-anchor="middle" fill="#A9B6CF" font-size="13">${esc(t1.length > 18 ? t1.slice(0, 17) + '…' : t1)}</text>
-    <text x="110" y="126" text-anchor="middle" fill="#EEF2FA" font-size="20" font-weight="700" style="font-family:var(--num)">${t2}</text></svg>`;
+    <text pointer-events="none" x="110" y="102" text-anchor="middle" fill="#A9B6CF" font-size="13">${esc(t1.length > 18 ? t1.slice(0, 17) + '…' : t1)}</text>
+    <text pointer-events="none" x="110" y="126" text-anchor="middle" fill="#EEF2FA" font-size="20" font-weight="700" style="font-family:var(--num)">${t2}</text></svg>`;
 }
 function barras(vals) {
   const W = 340, H = 180, top = 14, base = H - 24, cw = W / 12, bw = cw * .58;
@@ -566,8 +730,8 @@ function barras(vals) {
 }
 function porCategoria(prefix) {
   const m = new Map();
-  for (const l of S.lanc) if (l.tipo === 'gasto' && !isPai(l) && l.data.startsWith(prefix)) m.set(l.cat, (m.get(l.cat) || 0) + l.valor);
-  return CATS_G.filter(c => m.get(c.id) > 0).map(c => ({ ...c, v: m.get(c.id) })).sort((a, b) => b.v - a.v);
+  for (const l of S.lanc) if (l.tipo === 'gasto' && !isPai(l) && l.data.startsWith(prefix)) m.set(l.cat, (m.get(l.cat) || 0) + valRel(l));
+  return S.cats.gasto.filter(c => m.get(c.id) > 0).map(c => ({ ...c, v: m.get(c.id) })).sort((a, b) => b.v - a.v);
 }
 function legenda(itens, total) {
   return `<div class="legend">${itens.map(i => `<button class="row" data-act="selCat" data-id="${i.id}">
@@ -588,7 +752,8 @@ function futuroMes(ym) {
   return { g, e };
 }
 function vResumo() {
-  const seg = `<div class="seg"><button class="${ui.modo === 'mes' ? 'on' : ''}" data-act="modo" data-id="mes">Mês</button><button class="${ui.modo === 'ano' ? 'on' : ''}" data-act="modo" data-id="ano">Ano</button><button class="${ui.modo === 'metas' ? 'on' : ''}" data-act="modo" data-id="metas">Metas</button></div>`;
+  const seg = `<div class="seg"><button class="${ui.modo === 'mes' ? 'on' : ''}" data-act="modo" data-id="mes">Mês</button><button class="${ui.modo === 'ano' ? 'on' : ''}" data-act="modo" data-id="ano">Ano</button><button class="${ui.modo === 'comparar' ? 'on' : ''}" data-act="modo" data-id="comparar">Comparar</button><button class="${ui.modo === 'metas' ? 'on' : ''}" data-act="modo" data-id="metas">Metas</button></div>`;
+  if (ui.modo === 'comparar') return `<div class="top"><h1>Resumo</h1></div>${seg}${vComparar()}`;
   if (ui.modo === 'metas') return `<div class="top"><h1>Resumo</h1></div>${seg}${vMetas()}`;
   if (ui.modo === 'mes') {
     const m = ui.mes, g = soma(m, 'gasto'), e = soma(m, 'entrada'), ant = soma(addM(m, -1), 'gasto');
@@ -613,7 +778,7 @@ function vResumo() {
         <div class="stat"><div class="lbl">Média por dia</div><div class="num">${fmt(media)}</div></div>${pode}</div>
         ${atual ? `<p class="sub" style="margin:-4px 2px 12px">"Pode gastar por dia" divide o que ainda sobra do mês (já contando parcelas e entradas fixas que faltam cair) pelos ${diasMes - hojeDia + 1} dias restantes, incluindo hoje.</p>` : ''}`;
     }
-    const top5 = S.lanc.filter(l => l.tipo === 'gasto' && !isPai(l) && l.data.startsWith(m)).sort((a, b) => b.valor - a.valor).slice(0, 5);
+    const top5 = S.lanc.filter(l => l.tipo === 'gasto' && !isPai(l) && l.data.startsWith(m)).sort((a, b) => valRel(b) - valRel(a)).slice(0, 5);
     return `<div class="top"><h1>Resumo</h1></div>${seg}
     <div class="pnav"><button data-act="mesMv" data-id="-1" aria-label="Mês anterior">‹</button><span class="pl">${nomeMes(m)}</span><button data-act="mesMv" data-id="1" aria-label="Próximo mês">›</button></div>
     <div class="trio">
@@ -621,8 +786,10 @@ function vResumo() {
       <div class="stat"><div class="lbl">Gastos</div><div class="num">${fmt(g)}</div></div>
       <div class="stat"><div class="lbl">Sobrou</div><div class="num" style="color:${e - g >= 0 ? 'var(--gold)' : 'var(--red)'}">${fmt(e - g)}</div></div>
     </div>${cmp}${diario}
-    ${cats.length ? `<div class="chart">${donut(cats, g)}${legenda(cats, g)}</div>` : `<div class="emptybox">Sem gastos neste mês.</div>`}
-    ${top5.length ? `<h2>Maiores gastos</h2><div class="list">${top5.map(l => rowL(l, { comData: true })).join('')}</div>` : ''}`;
+    ${cats.length ? `<div class="chart">${donut(cats, g)}${legenda(cats, g)}${ui.selCat ? subsDe(m, ui.selCat) : ''}</div>` : `<div class="emptybox">Sem gastos neste mês.</div>`}
+    ${graficoSaldo(m)}
+    ${top5.length ? `<h2>Maiores gastos</h2><div class="list">${top5.map(l => rowL(l, { comData: true })).join('')}</div>` : ''}
+    ${porSemana(m)}`;
   }
   const y = ui.ano, vals = [...Array(12)].map((_, i) => soma(`${y}-${pad(i + 1)}`, 'gasto'));
   const g = vals.reduce((a, b) => a + b, 0), e = soma(String(y), 'entrada');
@@ -636,7 +803,8 @@ function vResumo() {
     <div class="stat"><div class="lbl">Sobrou</div><div class="num" style="color:${e - g >= 0 ? 'var(--gold)' : 'var(--red)'}">${fmt(e - g)}</div></div>
   </div>
   <div class="chart">${barras(vals)}<div class="cap">${cap}</div></div>
-  ${cats.length ? `<h2>Por categoria</h2><div class="chart">${legenda(cats, g)}</div>` : ''}`;
+  ${cats.length ? `<h2>Por categoria</h2><div class="chart">${legenda(cats, g)}${ui.selCat ? subsDe(String(y), ui.selCat) : ''}</div>` : ''}
+  ${porSemana(String(y))}`;
 }
 
 /* ---------- Faturas ---------- */
@@ -692,6 +860,14 @@ function vAjustes() {
   <div class="list">${S.cards.map(c => `<button class="row" data-act="editCard" data-id="${c.id}"><span class="rmain"><span class="rt">${esc(c.nome)}</span>
     <span class="rs"><span>fecha dia ${c.fecha}</span><span>vence dia ${c.vence}</span>${c.afeta ? '' : '<span class="tag">não afeta saldo</span>'}</span></span><span class="sub">Editar</span></button>`).join('')}</div>
   <div style="margin-top:10px"><button class="btn" data-act="editCard" data-id="">Adicionar cartão</button></div>
+  <h2>Organização</h2>
+  <div class="list"><button class="row" data-act="tab" data-id="cats"><span class="rmain"><span class="rt">Categorias e subcategorias</span><span class="rs"><span>criar, renomear, mudar cor, ocultar</span></span></span><span class="sub">Abrir</span></button>
+  <button class="row" data-act="tab" data-id="receber"><span class="rmain"><span class="rt">Contas a receber</span><span class="rs"><span>${pendRec().length ? pendRec().length + ' em aberto' : 'nenhuma em aberto'}</span></span></span><span class="sub">Abrir</span></button></div>
+  <h2>Atalho da Siri</h2>
+  <p class="sub" style="margin:0 2px 6px">No app Atalhos, crie um atalho com estas ações:</p>
+  <ol class="sub" style="margin:0 2px 6px 20px;line-height:1.6"><li>"Pedir Entrada", tipo Número, com a pergunta "Quanto?"</li><li>"Abrir URLs", com o endereço abaixo seguido da variável "Entrada fornecida"</li></ol>
+  <code class="code">webapp://${esc(location.host + location.pathname)}?novo=gasto&valor=</code>
+  <p class="sub" style="margin:0 2px 0">Dê ao atalho o nome "Registrar gasto". Aí é só falar "E aí Siri, registrar gasto", ou pôr o atalho na tela de bloqueio. O Finanças abre com o valor já preenchido. Para já escolher a categoria, acrescente <b>&cat=Alimentação</b> no fim do endereço.</p>
   <h2>Backup</h2>
   <p class="sub" style="margin:0 2px 10px">Seus dados ficam só neste iPhone. Exporte um backup de vez em quando e guarde no iCloud Drive ou no Arquivos. ${S.ultimoBackup ? `Último backup: ${dm(S.ultimoBackup)}/${S.ultimoBackup.slice(0, 4)}.` : 'Nenhum backup feito ainda.'}</p>
   <div class="actions"><button class="btn" data-act="exportar">Exportar backup</button><button class="btn" data-act="importar">Importar backup</button></div>
@@ -701,7 +877,7 @@ function vAjustes() {
   <div class="actions"><button class="btn" data-act="csv" data-id="mes">Este mês</button><button class="btn" data-act="csv" data-id="ano">Este ano</button><button class="btn" data-act="csv" data-id="tudo">Tudo</button></div>
   <h2>Zona de perigo</h2>
   <button class="btn danger" data-act="apagarTudo">Apagar todos os dados</button>
-  <p class="sub" style="margin:28px 2px 0">Finanças, versão 4</p>`;
+  <p class="sub" style="margin:28px 2px 0">Finanças, versão 5</p>`;
 }
 
 /* =========================================================
@@ -736,15 +912,18 @@ function chips(list, sel, act) {
 let F = null;
 function formL(l) {
   const novo = !l;
-  F = l ? { ...l, tagsTxt: (l.tags || []).join(', ') } : { tipo: 'gasto', valor: 0, cat: 'alim', pag: 'pix', data: nowStr(), desc: '', tagsTxt: '', parcelas: 1, repetir: false };
+  F = l ? { ...l, tagsTxt: (l.tags || []).join(', ') } : { tipo: 'gasto', valor: 0, cat: 'alim', sub: null, pag: 'pix', data: nowStr(), desc: '', tagsTxt: '', parcelas: 1, repetir: false, dividir: false, nDiv: 2, nomesTxt: '' };
   F.novo = novo;
   drawFormL();
 }
 function drawFormL() {
   const pags = [...PAGS_FIXOS, ...S.cards];
   const cred = F.tipo === 'gasto' && !!card(F.pag);
-  const cats = F.tipo === 'gasto' ? CATS_G : CATS_E;
+  const cats = catsDe(F.tipo).filter(c => !c.oculta || c.id === F.cat);
   if (!cats.find(c => c.id === F.cat)) F.cat = cats[0].id;
+  const subs = catOf(F).subs || [];
+  if (F.sub && !subs.find(x => x.id === F.sub)) F.sub = null;
+  const podeDividir = F.tipo === 'gasto' && F.novo && !(cred && F.parcelas > 1) && !F.repetir;
   const v = F._el ? centsOf(F._el) : F.valor;
   openSheet(`
     <h3>${F.novo ? 'Novo lançamento' : 'Editar lançamento'}<button class="btn sm" data-act="fechar">Cancelar</button></h3>
@@ -752,9 +931,16 @@ function drawFormL() {
     <input class="amount ${F.tipo}" id="fValor" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off">
     ${F.novo && cred && F.parcelas > 1 ? `<div class="hint" id="fParcHint" style="text-align:center;margin:-6px 0 12px"></div>` : ''}
     <div class="field"><span class="flabel">Categoria</span>${chips(cats, F.cat, 'fCat')}</div>
+    ${subs.length ? `<div class="field"><span class="flabel">Subcategoria</span>${chips([{ id: '', nome: 'Nenhuma' }, ...subs], F.sub || '', 'fSub')}</div>` : ''}
     ${F.tipo === 'gasto' ? `<div class="field"><span class="flabel">Forma de pagamento</span>${chips(pags, F.pag, 'fPag')}</div>` : ''}
     ${F.novo && cred ? `<div class="field"><span class="flabel">Parcelas</span><div class="stepper"><button type="button" data-act="fParc" data-id="-1">−</button><span class="num">${F.parcelas}x</span><button type="button" data-act="fParc" data-id="1">+</button></div></div>` : ''}
-    ${F.novo && !(cred && F.parcelas > 1) ? `<div class="field switch"><span>Repetir todo mês</span><input type="checkbox" id="fRep" ${F.repetir ? 'checked' : ''}></div>` : ''}
+    ${F.novo && !(cred && F.parcelas > 1) && !F.dividir ? `<div class="field switch"><span>Repetir todo mês</span><input type="checkbox" id="fRep" ${F.repetir ? 'checked' : ''}></div>` : ''}
+    ${podeDividir ? `<div class="field switch"><span>Dividir com outras pessoas</span><input type="checkbox" id="fDiv" ${F.dividir ? 'checked' : ''}></div>` : ''}
+    ${podeDividir && F.dividir ? `<div class="split"><span class="flabel">Dividido entre quantas pessoas (contando você)</span>
+      <div class="stepper" style="margin-bottom:10px"><button type="button" data-act="fNDiv" data-id="-1">−</button><span class="num">${F.nDiv}</span><button type="button" data-act="fNDiv" data-id="1">+</button></div>
+      <label class="flabel" for="fNomes">Quem te deve (opcional, separe por vírgula)</label><input id="fNomes" value="${esc(F.nomesTxt || '')}" placeholder="Ex.: João, Ana">
+      <div class="hint" id="fDivHint"></div></div>` : ''}
+    ${!F.novo && F.minha != null ? `<p class="hint" style="margin:-4px 2px 12px">Gasto dividido: sua parte é ${fmt(F.minha)}. O resto está em Contas a receber.</p>` : ''}
     <div class="field"><label for="fDesc">Descrição (opcional)</label><input id="fDesc" value="${esc(F.desc)}" placeholder="${F.tipo === 'gasto' ? 'Ex.: almoço' : 'Ex.: salário de novembro'}"></div>
     <div class="field"><label for="fTags">Tags (opcional)</label><input id="fTags" value="${esc(F.tagsTxt)}" placeholder="Ex.: viagem-rio, aniversario" autocapitalize="off"></div>
     <div class="field"><label for="fData">Data e hora</label><input id="fData" type="datetime-local" value="${F.data}"></div>
@@ -763,7 +949,8 @@ function drawFormL() {
   `, sh => {
     const el = sh.querySelector('#fValor'); F._el = el; moneyInput(el, v);
     const hint = () => { const h = sh.querySelector('#fParcHint'); if (h) h.textContent = `${F.parcelas}x de ${fmt(Math.round(centsOf(el) / F.parcelas * 100) / 100)}`; };
-    el.addEventListener('input', hint); hint();
+    const hDiv = () => { const h = sh.querySelector('#fDivHint'); if (h) { const v = centsOf(el), per = Math.round(v / F.nDiv * 100) / 100; h.textContent = `Sua parte: ${fmt(v - per * (F.nDiv - 1))}. Cada um te deve ${fmt(per)}.`; } };
+    el.addEventListener('input', hint); el.addEventListener('input', hDiv); hint(); hDiv();
     if (F.novo && !v && !F._focou) { F._focou = true; setTimeout(() => el.focus(), 300); }
   });
 }
@@ -773,6 +960,8 @@ function lerFormL() {
   F.tagsTxt = $('#fTags').value;
   F.data = $('#fData').value || nowStr();
   const rep = $('#fRep'); if (rep) F.repetir = rep.checked;
+  const dv = $('#fDiv'); if (dv) F.dividir = dv.checked;
+  const nm = $('#fNomes'); if (nm) F.nomesTxt = nm.value;
 }
 function salvarL() {
   lerFormL();
@@ -782,14 +971,23 @@ function salvarL() {
   if (F.novo && ((cred && F.parcelas > 1) || F.repetir)) {
     const n = cred && F.parcelas > 1 ? F.parcelas : null;
     S.recs.push({ id: uid(), tipo: F.tipo, desc: F.desc || catOf(F).nome, valor: n ? Math.round(F.valor / n * 100) / 100 : F.valor,
-      cat: F.cat, pag, dia: +F.data.slice(8, 10), hora: F.data.slice(11, 16), inicio: F.data.slice(0, 7), total: n, gerados: 0, tags: parseTags(F.tagsTxt) });
+      cat: F.cat, sub: F.sub || null, pag, dia: +F.data.slice(8, 10), hora: F.data.slice(11, 16), inicio: F.data.slice(0, 7), total: n, gerados: 0, tags: parseTags(F.tagsTxt) });
     toast(n ? `Compra em ${n}x salva` : 'Lançamento recorrente salvo');
   } else if (F.novo) {
-    S.lanc.push({ id: uid(), tipo: F.tipo, valor: F.valor, cat: F.cat, pag, data: F.data, desc: F.desc, tags: parseTags(F.tagsTxt) });
-    toast(F.tipo === 'gasto' ? 'Gasto salvo' : 'Entrada salva');
+    const novo = { id: uid(), tipo: F.tipo, valor: F.valor, cat: F.cat, pag, data: F.data, desc: F.desc, tags: parseTags(F.tagsTxt) };
+    if (F.sub) novo.sub = F.sub;
+    if (F.tipo === 'gasto' && F.dividir && F.nDiv > 1) {
+      const per = Math.round(F.valor / F.nDiv * 100) / 100;
+      novo.minha = Math.round((F.valor - per * (F.nDiv - 1)) * 100) / 100;
+      const nomes = (F.nomesTxt || '').split(',').map(x => x.trim()).filter(Boolean);
+      for (let i = 0; i < F.nDiv - 1; i++) S.receber.push({ id: uid(), pessoa: nomes[i] || `Pessoa ${i + 2}`, valor: per, desc: F.desc || catOf(F).nome, data: F.data, origem: novo.id });
+    }
+    S.lanc.push(novo);
+    toast(novo.minha != null ? `Gasto salvo. ${fmt(F.valor - novo.minha)} a receber` : F.tipo === 'gasto' ? 'Gasto salvo' : 'Entrada salva');
   } else {
     const l = S.lanc.find(x => x.id === F.id);
-    Object.assign(l, { tipo: F.tipo, valor: F.valor, cat: F.cat, pag, data: F.data, desc: F.desc, tags: parseTags(F.tagsTxt) });
+    if (l.minha != null && l.valor > 0 && F.valor !== l.valor) l.minha = Math.round(l.minha * F.valor / l.valor * 100) / 100;
+    Object.assign(l, { tipo: F.tipo, valor: F.valor, cat: F.cat, sub: F.sub || undefined, pag, data: F.data, desc: F.desc, tags: parseTags(F.tagsTxt) });
     toast('Alterações salvas');
   }
   save(); closeSheet(); render();
@@ -802,7 +1000,7 @@ function formRec(r) {
   R.novo = !r; drawRec();
 }
 function drawRec() {
-  const cats = R.tipo === 'gasto' ? CATS_G : CATS_E;
+  const cats = catsDe(R.tipo).filter(c => !c.oculta || c.id === R.cat);
   if (!cats.find(c => c.id === R.cat)) R.cat = cats[0].id;
   const v = R._el ? centsOf(R._el) : R.valor;
   openSheet(`
@@ -905,6 +1103,68 @@ async function resumoFatura(cid, ref) {
   catch (e) { openSheet(`<h3>Resumo<button class="btn sm" data-act="fechar">Fechar</button></h3><p class="hint" style="margin:0 2px 10px">Copie o texto abaixo.</p><textarea style="width:100%;height:260px;background:var(--s2);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px;font:15px/1.4 -apple-system,system-ui">${esc(texto)}</textarea>`); }
 }
 
+/* ---------- conta a receber ---------- */
+function formReceber() {
+  openSheet(`
+    <h3>Nova conta a receber<button class="btn sm" data-act="fechar">Cancelar</button></h3>
+    <div class="field"><label for="qPessoa">Quem te deve</label><input id="qPessoa" placeholder="Ex.: João"></div>
+    <div class="field"><label for="qValor">Valor</label><input id="qValor" inputmode="numeric" placeholder="R$ 0,00"></div>
+    <div class="field"><label for="qDesc">Do quê</label><input id="qDesc" placeholder="Ex.: ingresso do show"></div>
+    <button class="btn pri full" data-act="salvarReceber">Salvar</button>`, sh => moneyInput(sh.querySelector('#qValor'), 0));
+}
+function abrirRec(id) {
+  const r = S.receber.find(x => x.id === id); if (!r) return;
+  openSheet(`
+    <h3>${esc(r.pessoa)}<button class="btn sm" data-act="fechar">Fechar</button></h3>
+    <p class="hint" style="margin:0 2px 14px">${esc(r.desc)}, ${dm(r.data)}/${r.data.slice(0, 4)}. Valor: <b>${fmt(r.valor)}</b></p>
+    <button class="btn pri full" data-act="receberOk" data-id="${r.id}">Marcar como recebido</button>
+    <div class="actions" style="margin-top:10px"><button class="btn" data-act="cobrar" data-id="${r.id}">Enviar lembrete</button><button class="btn danger" data-act="excluirReceber" data-id="${r.id}">Excluir</button></div>`);
+}
+async function cobrar(id) {
+  const r = S.receber.find(x => x.id === id); if (!r) return;
+  const txt = `Oi, ${r.pessoa}! Só lembrando dos ${fmt(r.valor)} do ${r.desc} (${dm(r.data)}).`;
+  try { if (navigator.share) { await navigator.share({ text: txt }); return; } } catch (e) { if (e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(txt); toast('Mensagem copiada'); } catch (e) { toast('Não consegui copiar'); }
+}
+
+/* ---------- categoria ---------- */
+let K = null;
+function formCat(id) {
+  const c = catsDe(ui.catTipo).find(x => x.id === id);
+  K = c ? { ...c, subs: (c.subs || []).map(x => ({ ...x })), existe: true } : { id: uid(), nome: '', cor: CORES[0], subs: [], oculta: false, existe: false };
+  drawCat();
+}
+function drawCat() {
+  openSheet(`
+    <h3>${K.existe ? 'Editar categoria' : 'Nova categoria'}<button class="btn sm" data-act="fechar">Cancelar</button></h3>
+    <div class="field"><label for="kNome">Nome</label><input id="kNome" value="${esc(K.nome)}" placeholder="Ex.: Faculdade"></div>
+    <div class="field"><span class="flabel">Cor</span><div class="cores">${CORES.map(c => `<button type="button" class="${K.cor === c ? 'on' : ''}" style="background:${c}" data-act="kCor" data-id="${c}" aria-label="Cor ${c}"></button>`).join('')}</div></div>
+    <div class="field"><span class="flabel">Subcategorias</span>
+      ${K.subs.length ? `<div class="list subl" style="background:var(--s2);margin-bottom:8px">${K.subs.map(x => `<div class="row"><span class="rmain"><span class="rt">${esc(x.nome)}</span></span><button type="button" class="btn sm danger" data-act="kRemSub" data-id="${x.id}">Remover</button></div>`).join('')}</div>` : ''}
+      <div style="display:flex;gap:8px"><input id="kSub" placeholder="Ex.: Mercado, Restaurante"><button type="button" class="btn" data-act="kAddSub">Adicionar</button></div></div>
+    <div class="field switch"><span>Ocultar ao lançar</span><input type="checkbox" id="kOculta" ${K.oculta ? 'checked' : ''}></div>
+    <button class="btn pri full" data-act="salvarCat">Salvar</button>
+    ${K.existe ? `<div style="margin-top:10px"><button class="btn danger full" data-act="excluirCat">Excluir categoria</button></div>` : ''}`);
+}
+const lerCat = () => { K.nome = $('#kNome').value; K.oculta = $('#kOculta').checked; };
+
+/* ---------- atalho (abre já com o lançamento preenchido) ---------- */
+function abrirPorLink() {
+  const q = new URLSearchParams(location.search);
+  if (!q.has('novo') && !q.has('valor')) return;
+  history.replaceState(null, '', location.pathname);
+  formL(null);
+  F.tipo = q.get('novo') === 'entrada' ? 'entrada' : 'gasto';
+  const raw = String(q.get('valor') || '').trim();
+  const v = parseFloat(raw.includes(',') ? raw.replace(/\./g, '').replace(',', '.') : raw);
+  if (v > 0) F.valor = Math.round(v * 100) / 100;
+  const busca = (lista, t) => t ? lista.find(x => x.id === t || norm(x.nome) === norm(t)) : null;
+  const c = busca(catsDe(F.tipo), q.get('cat')); if (c) F.cat = c.id;
+  const pg = busca([...PAGS_FIXOS, ...S.cards], q.get('pag')); if (pg) F.pag = pg.id;
+  if (q.get('desc')) F.desc = q.get('desc');
+  F._el = null; drawFormL();
+}
+
 /* ---------- backup ---------- */
 async function exportar() {
   const nome = `financas-backup-${todayStr()}.json`;
@@ -922,11 +1182,11 @@ async function exportarCSV(per) {
   if (!linhas.length) { toast('Nenhum lançamento nesse período'); return; }
   const q = v => { v = String(v ?? ''); return /[";\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
   const num = v => v.toFixed(2).replace('.', ',');
-  const cab = ['Data', 'Hora', 'Tipo', 'Descrição', 'Categoria', 'Pagamento', 'Valor', 'Fatura', 'Conta no saldo', 'Tags'];
+  const cab = ['Data', 'Hora', 'Tipo', 'Descrição', 'Categoria', 'Subcategoria', 'Pagamento', 'Valor', 'Sua parte', 'Fatura', 'Conta no saldo', 'Tags'];
   const corpo = linhas.map(l => {
     const c = isCredito(l) ? card(l.pag) : null;
     return [`${l.data.slice(8, 10)}/${l.data.slice(5, 7)}/${l.data.slice(0, 4)}`, l.data.slice(11, 16), l.tipo === 'gasto' ? 'Gasto' : 'Entrada',
-      l.desc || '', catOf(l).nome, l.tipo === 'gasto' ? pagNome(l.pag) : '', num(l.tipo === 'gasto' ? -l.valor : l.valor),
+      l.desc || '', catOf(l).nome, subOf(l)?.nome || '', l.tipo === 'gasto' ? pagNome(l.pag) : '', num(l.tipo === 'gasto' ? -l.valor : l.valor), num(l.tipo === 'gasto' ? -valRel(l) : valRel(l)),
       c ? `${mesSo(refF(l.data, c))}/${refF(l.data, c).slice(0, 4)}` : '', isPai(l) ? 'Não' : 'Sim', (l.tags || []).join(' ')].map(q).join(';');
   });
   const csv = '﻿' + [cab.join(';'), ...corpo].join('\r\n');
@@ -972,29 +1232,78 @@ const A = {
   editL: id => formL(S.lanc.find(l => l.id === id)),
   fechar: closeSheet,
   fTipo: id => { lerFormL(); F.tipo = id; drawFormL(); },
-  fCat: id => { lerFormL(); F.cat = id; drawFormL(); },
+  fCat: id => { lerFormL(); if (F.cat !== id) F.sub = null; F.cat = id; drawFormL(); },
+  fSub: id => { lerFormL(); F.sub = id || null; drawFormL(); },
+  fNDiv: d => { lerFormL(); F.nDiv = Math.min(20, Math.max(2, F.nDiv + +d)); drawFormL(); },
+  diaSel: d => { ui.dia = d; render(); },
+  calMv: d => { const ym = addM(ui.dia.slice(0, 7), +d); ui.dia = dateIn(ym, +ui.dia.slice(8, 10)); render(); },
+  selSaldo: i => { ui.selSaldo = +i; render(); },
+  novaReceber: formReceber,
+  salvarReceber: () => {
+    const pessoa = $('#qPessoa').value.trim(), valor = centsOf($('#qValor')), desc = $('#qDesc').value.trim();
+    if (!pessoa) { toast('Diga quem te deve'); return; }
+    if (!(valor > 0)) { toast('Digite um valor'); return; }
+    S.receber.push({ id: uid(), pessoa, valor, desc: desc || 'conta', data: nowStr() });
+    save(); closeSheet(); render(); toast('Conta a receber salva');
+  },
+  abrirRec: id => abrirRec(id),
+  receberOk: id => {
+    const r = S.receber.find(x => x.id === id); if (!r) return;
+    const l = { id: uid(), tipo: 'entrada', valor: r.valor, cat: 'reemb', pag: null, data: nowStr(), desc: `${r.pessoa}: ${r.desc}`, reemb: true };
+    S.lanc.push(l); r.recebido = { data: l.data, lanc: l.id };
+    save(); closeSheet(); render(); toast(`${fmt(r.valor)} recebido`);
+  },
+  desfazerRec: id => {
+    const r = S.receber.find(x => x.id === id); if (!r || !r.recebido) return;
+    S.lanc = S.lanc.filter(l => l.id !== r.recebido.lanc); delete r.recebido; save(); render(); toast('Recebimento desfeito');
+  },
+  excluirReceber: id => confirmar('Excluir esta conta a receber?', 'Excluir', () => { S.receber = S.receber.filter(x => x.id !== id); save(); closeSheet(); render(); }),
+  cobrar: id => cobrar(id),
+  catTipo: t => { ui.catTipo = t; render(); },
+  ordem: o => { ui.ordem = o; render(); },
+  editCat: id => formCat(id),
+  kCor: c => { lerCat(); K.cor = c; drawCat(); },
+  kAddSub: () => { lerCat(); const n = $('#kSub').value.trim(); if (!n) return; n.split(',').map(x => x.trim()).filter(Boolean).forEach(x => K.subs.push({ id: uid(), nome: x })); drawCat(); },
+  kRemSub: id => { lerCat(); K.subs = K.subs.filter(x => x.id !== id); drawCat(); },
+  salvarCat: () => {
+    lerCat(); const sub = $('#kSub').value.trim(); if (sub) sub.split(',').map(x => x.trim()).filter(Boolean).forEach(x => K.subs.push({ id: uid(), nome: x }));
+    if (!K.nome.trim()) { toast('Dê um nome à categoria'); return; }
+    const lista = catsDe(ui.catTipo), d = { id: K.id, nome: K.nome.trim(), cor: K.cor, subs: K.subs, oculta: K.oculta };
+    const i = lista.findIndex(x => x.id === K.id);
+    if (i >= 0) lista[i] = d; else lista.push(d);
+    save(); closeSheet(); render(); toast('Categoria salva');
+  },
+  excluirCat: () => {
+    const usada = S.lanc.some(l => l.tipo === ui.catTipo && l.cat === K.id) || S.recs.some(r => r.tipo === ui.catTipo && r.cat === K.id);
+    if (usada) { toast('Categoria em uso. Use "Ocultar ao lançar".'); return; }
+    if (catsDe(ui.catTipo).length <= 1) { toast('Precisa ter ao menos uma categoria'); return; }
+    confirmar(`Excluir a categoria ${K.nome}?`, 'Excluir', () => { const l = catsDe(ui.catTipo); l.splice(l.findIndex(x => x.id === K.id), 1); save(); closeSheet(); render(); });
+  },
   fPag: id => { lerFormL(); F.pag = id; if (!card(id)) F.parcelas = 1; drawFormL(); },
   fParc: d => { lerFormL(); F.parcelas = Math.min(48, Math.max(1, F.parcelas + +d)); drawFormL(); },
   salvarL,
   excluirL: () => {
     const i = S.lanc.findIndex(l => l.id === F.id); if (i < 0) return;
-    const [rem] = S.lanc.splice(i, 1); save(); closeSheet(); render();
-    toastAcao('Lançamento excluído', 'Desfazer', () => { S.lanc.push(rem); save(); render(); toast('Lançamento restaurado'); });
+    const [rem] = S.lanc.splice(i, 1);
+    const recs = S.receber.filter(r => r.origem === rem.id && !r.recebido);
+    S.receber = S.receber.filter(r => !recs.includes(r));
+    save(); closeSheet(); render();
+    toastAcao('Lançamento excluído', 'Desfazer', () => { S.lanc.push(rem); S.receber.push(...recs); save(); render(); toast('Lançamento restaurado'); });
   },
   toastAcao: () => { const f = ACAO; ACAO = null; $('#toast').classList.remove('show', 'acao'); f && f(); },
   duplicarL: () => {
     lerFormL();
     if (!(F.valor > 0)) { toast('Digite um valor'); return; }
     S.lanc.push({ id: uid(), tipo: F.tipo, valor: F.valor, cat: F.cat, pag: F.tipo === 'gasto' ? F.pag : null, data: nowStr(),
-      desc: F.desc.replace(/ \(\d+\/\d+\)$/, ''), tags: parseTags(F.tagsTxt) });
+      desc: F.desc.replace(/ \(\d+\/\d+\)$/, ''), tags: parseTags(F.tagsTxt), ...(F.sub ? { sub: F.sub } : {}) });
     save(); closeSheet(); render(); toast('Lançado de novo');
   },
   cfOk: () => { const f = CF; CF = null; f && f(); },
   diaMv: d => { ui.dia = addD(ui.dia, +d); render(); },
   diaHoje: () => { ui.dia = todayStr(); render(); },
-  mesMv: d => { ui.mes = addM(ui.mes, +d); ui.selCat = null; render(); },
+  mesMv: d => { ui.mes = addM(ui.mes, +d); ui.selCat = null; ui.selSaldo = null; render(); },
   anoMv: d => { ui.ano += +d; ui.selBar = null; render(); },
-  modo: id => { ui.modo = id; ui.selCat = null; ui.selBar = null; render(); },
+  modo: id => { ui.modo = id; ui.selCat = null; ui.selBar = null; ui.selSaldo = null; render(); },
   selCat: id => { ui.selCat = ui.selCat === id ? null : id; render(); },
   selBar: i => { ui.selBar = ui.selBar === +i ? null : +i; render(); },
   abrirF: id => { ui.abertaF = ui.abertaF === id ? null : id; render(); },
@@ -1058,14 +1367,19 @@ document.addEventListener('click', e => {
   const fn = A[el.dataset.act]; if (fn) { e.preventDefault(); fn(el.dataset.id); }
 });
 document.addEventListener('input', e => { if (e.target.id === 'bq') { ui.bq = e.target.value; $('#bres').innerHTML = resultadosBusca(); } });
-document.addEventListener('change', e => { if (e.target.id === 'fileImp' && e.target.files[0]) importar(e.target.files[0]); });
+document.addEventListener('change', e => {
+  const id = e.target.id;
+  if (id === 'fileImp' && e.target.files[0]) importar(e.target.files[0]);
+  if ((id === 'fRep' || id === 'fDiv') && F) { lerFormL(); drawFormL(); }
+  if (id === 'cA' || id === 'cB') { if (e.target.value) { ui[id] = e.target.value; render(); } }
+});
 document.addEventListener('keydown', e => { if (e.target.id === 'bq' && e.key === 'Enter') e.target.blur(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 
 /* =========================================================
    INÍCIO
    ========================================================= */
-load(); render();
+load(); render(); abrirPorLink();
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 if ('serviceWorker' in navigator && window.self === window.top && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
