@@ -211,6 +211,43 @@ nav.tabs svg{width:24px;height:24px}
 .ttag{font-size:12px;color:var(--blue2)}
 .toast{white-space:nowrap;position:fixed;left:50%;bottom:calc(var(--safe-b) + 92px);transform:translate(-50%,20px);background:#22355C;color:var(--ink);padding:10px 16px;border-radius:12px;font-size:15px;opacity:0;transition:all .25s;z-index:60;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.desk{display:none!important}
+.cols>div{min-width:0}
+@media (min-width:900px){
+  .ultimos{margin-top:0}
+  body{padding:32px 40px 48px 280px}
+  #view{max-width:1120px;margin:0}
+  .desk{display:revert!important}
+  nav.tabs button.desk{display:flex!important}
+  div.desk{display:block!important}
+  .mob{display:none!important}
+  nav.tabs{top:0;bottom:0;right:auto;width:240px;border-top:0;border-right:1px solid var(--line);padding:28px 16px;background:var(--s1);-webkit-backdrop-filter:none;backdrop-filter:none}
+  nav.tabs .in{display:flex;flex-direction:column;gap:2px;max-width:none;height:100%}
+  nav.tabs .brand{font-size:22px;font-weight:700;letter-spacing:-.02em;padding:0 10px 18px;color:var(--ink)}
+  nav.tabs button{flex-direction:row;gap:12px;font-size:15px;padding:11px 12px;border-radius:12px;justify-content:flex-start;color:var(--ink2)}
+  nav.tabs button svg{width:20px;height:20px}
+  nav.tabs button{width:100%;align-items:center}
+  .topbtns .iconbtn{display:none}
+  nav.tabs button:hover{background:rgba(255,255,255,.04)}
+  nav.tabs button.on{background:var(--s2);color:var(--ink)}
+  nav.tabs .fab{order:-1;width:100%;height:46px;border-radius:12px;margin:0 0 14px;display:flex!important;justify-content:center!important;gap:8px;font-weight:600;font-size:15px;color:#fff;box-shadow:none}
+  nav.tabs .fab svg{width:20px!important;height:20px!important}
+  nav.tabs .brand{order:-2}
+  .hint-kb{margin-top:auto;font-size:12px;color:var(--ink3);padding:10px;line-height:1.5}
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+  .cols.wide-l{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+  .cols h2:first-child{margin-top:0}
+  .top h1{font-size:32px}
+  .top{margin-bottom:20px}
+  .row:hover,.legend .row:hover{background:rgba(255,255,255,.03)}
+  .backdrop{background:rgba(0,0,0,.6)}
+  .sheet{left:50%;right:auto;bottom:auto;top:50%;width:540px;max-height:86vh;border-radius:24px;padding:10px 26px 26px;transform:translate(-50%,-46%);opacity:0;transition:transform .22s cubic-bezier(.2,.8,.2,1),opacity .18s}
+  .sheet.show{transform:translate(-50%,-50%);opacity:1}
+  .sheet .grab{visibility:hidden;margin-bottom:4px}
+  .toast{left:calc(50% + 120px);bottom:32px}
+  .stats{margin-bottom:0}
+  .chart svg{max-height:300px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -218,11 +255,15 @@ nav.tabs svg{width:24px;height:24px}
 <main id="view"></main>
 
 <nav class="tabs"><div class="in">
+  <div class="brand desk">Finanças</div>
   <button data-act="tab" data-id="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Início</button>
   <button data-act="tab" data-id="dia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4.5" width="18" height="16.5" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Dia</button>
-  <button class="fab" data-act="novo" aria-label="Novo lançamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="fab" data-act="novo" aria-label="Novo lançamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="desk">Novo lançamento</span></button>
   <button data-act="tab" data-id="resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Resumo</button>
   <button data-act="tab" data-id="faturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6.5 15h4"/></svg>Faturas</button>
+  <button class="desk" data-act="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>Buscar</button>
+  <button class="desk" data-act="tab" data-id="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Ajustes</button>
+  <div class="desk hint-kb">Atalhos: <b>N</b> novo lançamento, <b>/</b> buscar, <b>Esc</b> fechar</div>
 </div></nav>
 
 <div id="layer"></div>
@@ -296,8 +337,13 @@ function nomeDia(ds) {
 let S;
 function load() {
   try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+  normalizar(); tirarFoto();
+}
+function normalizar() {
   if (!S || typeof S !== 'object') S = {};
   S.v = 1;
+  S.del ??= {};
+  S.confU ??= 0;
   S.saldoInicial ??= null;
   S.dataInicial ??= null;
   S.cards ??= structuredClone(CARDS_PADRAO);
@@ -310,9 +356,30 @@ function load() {
   S.receber ??= [];
   S.cats ??= { gasto: CATS_G.map(c => ({ ...c, subs: [] })), entrada: CATS_E.map(c => ({ ...c, subs: [] })) };
 }
-function save() {
+function persistir() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
   catch (e) { toast('Não consegui salvar. Faça um backup em Ajustes.'); }
+}
+function save() { carimbar(); persistir(); agendarSync(); }
+
+/* ---------- carimbos de alteração (para a sincronização saber o que é mais novo) ---------- */
+const COLS = ['lanc', 'recs', 'pags', 'metas', 'receber', 'cards'];
+function itensSync(st) {
+  const out = [];
+  for (const c of COLS) for (const it of st[c] || []) out.push([c + ':' + it.id, it]);
+  for (const t of ['gasto', 'entrada']) for (const it of (st.cats && st.cats[t]) || []) out.push(['cat' + t + ':' + it.id, it]);
+  return out;
+}
+const semU = o => { const { u, ...r } = o; return JSON.stringify(r); };
+let SNAP = new Map(), CONF = '';
+function tirarFoto() { SNAP = new Map(itensSync(S).map(([k, o]) => [k, semU(o)])); CONF = JSON.stringify([S.saldoInicial, S.dataInicial]); }
+function carimbar() {
+  const agora = Date.now(), vistos = new Set();
+  for (const [k, o] of itensSync(S)) { vistos.add(k); if (SNAP.get(k) !== semU(o)) o.u = agora; if (S.del[k] && S.del[k] <= (o.u || 0)) delete S.del[k]; }
+  for (const k of SNAP.keys()) if (!vistos.has(k)) S.del[k] = agora;
+  if (JSON.stringify([S.saldoInicial, S.dataInicial]) !== CONF) S.confU = agora;
+  const limite = agora - 180 * 864e5; for (const k in S.del) if (S.del[k] < limite) delete S.del[k];
+  tirarFoto();
 }
 
 const card = id => S.cards.find(c => c.id === id);
@@ -382,10 +449,11 @@ function gerar() {
     while (r.total == null || r.gerados < r.total) {
       const d = occ(r, r.gerados);
       if (d > now) break;
-      const k = r.gerados;
-      S.lanc.push({ id: uid(), tipo: r.tipo, valor: r.valor, cat: r.cat, pag: r.pag, data: d,
-        desc: r.total ? `${r.desc} (${k + 1}/${r.total})` : r.desc, rec: r.id, ...(r.sub ? { sub: r.sub } : {}), ...(r.tags && r.tags.length ? { tags: r.tags } : {}) });
+      const k = r.gerados, idG = `${r.id}-${k}`;
       r.gerados++; mudou = true;
+      if (S.lanc.some(l => l.id === idG) || S.del['lanc:' + idG]) continue;
+      S.lanc.push({ id: idG, tipo: r.tipo, valor: r.valor, cat: r.cat, pag: r.pag, data: d,
+        desc: r.total ? `${r.desc} (${k + 1}/${r.total})` : r.desc, rec: r.id, ...(r.sub ? { sub: r.sub } : {}), ...(r.tags && r.tags.length ? { tags: r.tags } : {}) });
     }
   }
   if (mudou) save();
@@ -411,7 +479,8 @@ const ui = { ordem: 'data', catTipo: 'gasto', selSaldo: null, cA: addM(ymNow(), 
 
 function render() {
   gerar();
-  document.querySelectorAll('nav.tabs [data-act=tab]').forEach(b => b.classList.toggle('on', b.dataset.id === ui.tab));
+  document.querySelectorAll('nav.tabs [data-act=tab]').forEach(b => b.classList.toggle('on', b.dataset.id === ui.tab || (b.dataset.id === 'ajustes' && (ui.tab === 'cats' || ui.tab === 'receber'))));
+  document.querySelectorAll('nav.tabs [data-act=buscar]').forEach(b => b.classList.toggle('on', ui.tab === 'busca'));
   $('#view').innerHTML = ({ home: vHome, dia: vDia, resumo: vResumo, faturas: vFaturas, ajustes: vAjustes, busca: vBusca, receber: vReceber, cats: vCats })[ui.tab]();
   // diminui a fonte dos números que não cabem no quadrinho
   document.querySelectorAll('.stat .num').forEach(el => { let f = 17; while (el.scrollWidth > el.clientWidth && f > 11) el.style.fontSize = (--f) + 'px'; });
@@ -446,13 +515,14 @@ function vHome() {
       <div class="big num ${oc ? 'oculto' : ''}">${esconde(s)}</div>
       <div class="after"><span>Depois de pagar as faturas</span><span class="num">${esconde(s - pend)}</span></div></div>`;
   }
-  const recentes = S.lanc.filter(l => l.data <= nowStr()).sort((a, b) => b.data.localeCompare(a.data)).slice(0, 6);
+  const recentes = S.lanc.filter(l => l.data <= nowStr()).sort((a, b) => b.data.localeCompare(a.data)).slice(0, matchMedia('(min-width:900px)').matches ? 12 : 6);
   const prox = [];
   for (const c of S.cards) if (c.afeta) for (const r of pendentes(c.id)) prox.push({ c, r, v: totalFatura(c.id, r) });
   prox.sort((a, b) => vencimento(a.c, a.r).localeCompare(vencimento(b.c, b.r)));
   return `
   <div class="top"><h1>Finanças</h1><div class="topbtns"><button class="iconbtn" data-act="buscar" aria-label="Buscar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button><button class="iconbtn" data-act="tab" data-id="ajustes" aria-label="Ajustes">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div></div>
+  <div class="cols wide-l"><div>
   ${hero}${avisoBackup()}
   <div class="stats">
     <div class="stat"><div class="lbl">Gasto hoje</div><div class="num">${fmt(soma(hoje, 'gasto'))}</div></div>
@@ -464,9 +534,11 @@ function vHome() {
     <button class="row" data-act="tab" data-id="faturas"><span class="rmain"><span class="rt">${esc(p.c.nome)}</span>
     <span class="rs"><span>vence ${dm(vencimento(p.c, p.r))}</span><span>${statusF(p.c, p.r)}</span></span></span>
     <span class="rv">${fmt(p.v)}</span></button>`).join('')}</div>` : ''}
-  <h2>Últimos lançamentos</h2>
+  </div><div>
+  <h2 class="ultimos">Últimos lançamentos</h2>
   ${recentes.length ? `<div class="list">${recentes.map(l => rowL(l, { comData: true })).join('')}</div>`
-    : `<div class="emptybox">Nenhum lançamento ainda. Toque no + para registrar o primeiro gasto.</div>`}`;
+    : `<div class="emptybox">Nenhum lançamento ainda. Toque no + para registrar o primeiro gasto.</div>`}
+  </div></div>`;
 }
 
 /* ---------- Dia ---------- */
@@ -476,14 +548,15 @@ function vDia() {
   const g = soma(d, 'gasto'), e = soma(d, 'entrada');
   return `
   <div class="top"><h1>Dia</h1><div class="topbtns">${d !== todayStr() ? `<button class="btn sm" data-act="diaHoje">Hoje</button>` : ''}<button class="iconbtn" data-act="buscar" aria-label="Buscar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button></div></div>
-  ${calendario(d)}
+  <div class="cols"><div>${calendario(d)}</div><div>
   <h2 style="margin-top:4px">${nomeDia(d)}</h2>
   <div class="two" style="margin-bottom:12px">
     <div class="stat"><div class="lbl">Gastos</div><div class="num">${fmt(g)}</div></div>
     <div class="stat"><div class="lbl">Entradas</div><div class="num" style="color:var(--green)">${fmt(e)}</div></div>
   </div>
   ${itens.length > 1 ? seletorOrdem() : ''}
-  ${itens.length ? `<div class="list">${itens.map(l => rowL(l)).join('')}</div>` : `<div class="emptybox">Nada registrado neste dia.</div>`}`;
+  ${itens.length ? `<div class="list">${itens.map(l => rowL(l)).join('')}</div>` : `<div class="emptybox">Nada registrado neste dia.</div>`}
+  </div></div>`;
 }
 
 function diasDesde(ds) {
@@ -785,11 +858,14 @@ function vResumo() {
       <div class="stat"><div class="lbl">Entradas</div><div class="num" style="color:var(--green)">${fmt(e)}</div></div>
       <div class="stat"><div class="lbl">Gastos</div><div class="num">${fmt(g)}</div></div>
       <div class="stat"><div class="lbl">Sobrou</div><div class="num" style="color:${e - g >= 0 ? 'var(--gold)' : 'var(--red)'}">${fmt(e - g)}</div></div>
-    </div>${cmp}${diario}
+    </div>${cmp}
+    <div class="cols"><div>${diario}
     ${cats.length ? `<div class="chart">${donut(cats, g)}${legenda(cats, g)}${ui.selCat ? subsDe(m, ui.selCat) : ''}</div>` : `<div class="emptybox">Sem gastos neste mês.</div>`}
+    </div><div>
     ${graficoSaldo(m)}
     ${top5.length ? `<h2>Maiores gastos</h2><div class="list">${top5.map(l => rowL(l, { comData: true })).join('')}</div>` : ''}
-    ${porSemana(m)}`;
+    ${porSemana(m)}
+    </div></div>`;
   }
   const y = ui.ano, vals = [...Array(12)].map((_, i) => soma(`${y}-${pad(i + 1)}`, 'gasto'));
   const g = vals.reduce((a, b) => a + b, 0), e = soma(String(y), 'entrada');
@@ -802,9 +878,12 @@ function vResumo() {
     <div class="stat"><div class="lbl">Gastos</div><div class="num">${fmt(g)}</div></div>
     <div class="stat"><div class="lbl">Sobrou</div><div class="num" style="color:${e - g >= 0 ? 'var(--gold)' : 'var(--red)'}">${fmt(e - g)}</div></div>
   </div>
+  <div class="cols"><div>
   <div class="chart">${barras(vals)}<div class="cap">${cap}</div></div>
+  ${porSemana(String(y))}
+  </div><div>
   ${cats.length ? `<h2>Por categoria</h2><div class="chart">${legenda(cats, g)}${ui.selCat ? subsDe(String(y), ui.selCat) : ''}</div>` : ''}
-  ${porSemana(String(y))}`;
+  </div></div>`;
 }
 
 /* ---------- Faturas ---------- */
@@ -863,6 +942,8 @@ function vAjustes() {
   <h2>Organização</h2>
   <div class="list"><button class="row" data-act="tab" data-id="cats"><span class="rmain"><span class="rt">Categorias e subcategorias</span><span class="rs"><span>criar, renomear, mudar cor, ocultar</span></span></span><span class="sub">Abrir</span></button>
   <button class="row" data-act="tab" data-id="receber"><span class="rmain"><span class="rt">Contas a receber</span><span class="rs"><span>${pendRec().length ? pendRec().length + ' em aberto' : 'nenhuma em aberto'}</span></span></span><span class="sub">Abrir</span></button></div>
+  <h2>Sincronização</h2>
+  ${blocoSync()}
   <h2>Atalho da Siri</h2>
   <p class="sub" style="margin:0 2px 6px">No app Atalhos, crie um atalho com estas ações:</p>
   <ol class="sub" style="margin:0 2px 6px 20px;line-height:1.6"><li>"Pedir Entrada", tipo Número, com a pergunta "Quanto?"</li><li>"Abrir URLs", com o endereço abaixo seguido da variável "Entrada fornecida"</li></ol>
@@ -877,7 +958,7 @@ function vAjustes() {
   <div class="actions"><button class="btn" data-act="csv" data-id="mes">Este mês</button><button class="btn" data-act="csv" data-id="ano">Este ano</button><button class="btn" data-act="csv" data-id="tudo">Tudo</button></div>
   <h2>Zona de perigo</h2>
   <button class="btn danger" data-act="apagarTudo">Apagar todos os dados</button>
-  <p class="sub" style="margin:28px 2px 0">Finanças, versão 5</p>`;
+  <p class="sub" style="margin:28px 2px 0">Finanças, versão 6</p>`;
 }
 
 /* =========================================================
@@ -1165,6 +1246,156 @@ function abrirPorLink() {
   F._el = null; drawFormL();
 }
 
+/* ---------- sincronização (criptografada no aparelho) ---------- */
+const SYNC_URL = 'https://caderno-sync.lc-br.workers.dev';
+const KEY_SYNC = 'financas.sync';
+let SY = null;
+try { SY = JSON.parse(localStorage.getItem(KEY_SYNC)); } catch (e) { SY = null; }
+const saveSync = () => { try { SY ? localStorage.setItem(KEY_SYNC, JSON.stringify(SY)) : localStorage.removeItem(KEY_SYNC); } catch (e) {} };
+const syncPronto = () => !!SYNC_URL && !SYNC_URL.startsWith('__');
+const enc = new TextEncoder(), dec = new TextDecoder();
+const junta = (a, b) => { const o = new Uint8Array(a.length + b.length); o.set(a); o.set(b, a.length); return o; };
+function b64(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+const unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+const hexDe = async (u8, tag) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', junta(u8, enc.encode(tag))))].map(b => b.toString(16).padStart(2, '0')).join('');
+async function derivar(senha) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(senha), 'PBKDF2', false, ['deriveBits']);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode('caderno-financas-v1'), iterations: 310000 }, base, 512));
+  const aux = bits.slice(32);
+  return { id: (await hexDe(aux, 'id')).slice(0, 32), tok: await hexDe(aux, 'tok'), k: b64(bits.slice(0, 32)) };
+}
+const chave = () => crypto.subtle.importKey('raw', unb64(SY.k), 'AES-GCM', false, ['encrypt', 'decrypt']);
+async function comprimir(u8, sim) {
+  if (typeof CompressionStream === 'undefined') return null;
+  const st = new Blob([u8]).stream().pipeThrough(sim ? new CompressionStream('gzip') : new DecompressionStream('gzip'));
+  return new Uint8Array(await new Response(st).arrayBuffer());
+}
+async function cifrar(obj) {
+  let dados = enc.encode(JSON.stringify(obj)), pre = 'v1.';
+  const gz = await comprimir(dados, true); if (gz) { dados = gz; pre = 'g1.'; }
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await chave(), dados));
+  return pre + b64(junta(iv, ct));
+}
+async function decifrar(txt) {
+  const pre = txt.slice(0, 3), bruto = unb64(txt.slice(3));
+  let dados = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: bruto.slice(0, 12) }, await chave(), bruto.slice(12)));
+  if (pre === 'g1.') dados = await comprimir(dados, false);
+  return JSON.parse(dec.decode(dados));
+}
+// só o que deve ir para a nuvem (o olho e a data do backup ficam em cada aparelho)
+const dadosSync = st => { const { ocultar, ultimoBackup, ...r } = st; return r; };
+function canon(st) {
+  const d = dadosSync(st), o = {};
+  for (const k of Object.keys(d).sort()) {
+    const v = d[k];
+    if (Array.isArray(v)) o[k] = [...v].sort((a, b) => String(a.id).localeCompare(String(b.id))).map(x => JSON.stringify(x));
+    else if (k === 'del') o[k] = Object.keys(v).sort().map(x => x + '=' + v[x]);
+    else o[k] = JSON.stringify(v);
+  }
+  return JSON.stringify(o);
+}
+function mesclar(loc, rem) {
+  const del = { ...(rem.del || {}) };
+  for (const [k, t] of Object.entries(loc.del || {})) del[k] = Math.max(del[k] || 0, t);
+  const escolhe = (a, b) => !a ? b : !b ? a : ((b.u || 0) > (a.u || 0) ? b : a);
+  const junta2 = (pre, A, B) => {
+    const m = new Map();
+    for (const x of A || []) m.set(x.id, x);
+    for (const x of B || []) {
+      const a = m.get(x.id); let e = escolhe(a, x);
+      if (pre === 'recs:' && a) e = { ...e, gerados: Math.max(a.gerados || 0, x.gerados || 0) };
+      m.set(x.id, e);
+    }
+    return [...m.values()].filter(x => !(del[pre + x.id] !== undefined && del[pre + x.id] >= (x.u || 0)));
+  };
+  const out = { ...loc };
+  for (const c of COLS) out[c] = junta2(c + ':', loc[c], rem[c]);
+  out.cats = { gasto: junta2('catgasto:', loc.cats?.gasto, rem.cats?.gasto), entrada: junta2('catentrada:', loc.cats?.entrada, rem.cats?.entrada) };
+  if ((rem.confU || 0) > (loc.confU || 0)) { out.saldoInicial = rem.saldoInicial; out.dataInicial = rem.dataInicial; out.confU = rem.confU; }
+  out.del = del;
+  return out;
+}
+async function api(method, body) {
+  const r = await fetch(`${SYNC_URL}/v/${SY.id}`, { method, cache: 'no-store',
+    headers: { Authorization: 'Bearer ' + SY.tok, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  let j = {}; try { j = await r.json(); } catch (e) {}
+  return { status: r.status, j };
+}
+let syncando = false, syncDeNovo = false, syncTimer = null;
+function agendarSync(ms = 2500) { if (!SY || !syncPronto()) return; clearTimeout(syncTimer); syncTimer = setTimeout(() => sincronizar(), ms); }
+async function sincronizar(manual) {
+  if (!SY || !syncPronto()) return;
+  if (syncando) { syncDeNovo = true; return; }
+  syncando = true; clearTimeout(syncTimer);
+  let mudouAqui = false;
+  try {
+    for (let t = 0; t < 4; t++) {
+      const g = await api('GET');
+      let base = 0, remoto = null;
+      if (g.status === 200) { base = g.j.ver; remoto = await decifrar(g.j.blob); }
+      else if (g.status !== 404) throw new Error('GET ' + g.status);
+      if (remoto) {
+        const antes = canon(S), m = mesclar(S, remoto);
+        Object.assign(m, { ocultar: S.ocultar, ultimoBackup: S.ultimoBackup });
+        S = m; normalizar();
+        if (canon(S) !== antes) { mudouAqui = true; persistir(); tirarFoto(); }
+        if (canon(S) === canon(remoto)) { SY.ver = base; break; }
+      }
+      const p = await api('PUT', { baseVer: base, blob: await cifrar(dadosSync(S)) });
+      if (p.status === 200) { SY.ver = p.j.ver; break; }
+      if (p.status !== 409) throw new Error('PUT ' + p.status);
+    }
+    SY.ult = nowStr(); SY.erro = null;
+    if (manual) toast('Sincronizado');
+  } catch (e) {
+    SY.erro = navigator.onLine === false ? 'sem internet' : 'não conseguiu conectar';
+    if (manual) toast('Não consegui sincronizar agora');
+  } finally {
+    syncando = false; saveSync();
+    if (mudouAqui && !$('.sheet.show')) render();
+    else if (ui.tab === 'ajustes') render();
+    if (syncDeNovo) { syncDeNovo = false; agendarSync(400); }
+  }
+}
+let SV = { modo: 'novo' };
+function formSync() {
+  openSheet(`
+    <h3>Ativar sincronização<button class="btn sm" data-act="fechar">Cancelar</button></h3>
+    <div class="seg"><button type="button" class="${SV.modo === 'novo' ? 'on' : ''}" data-act="svModo" data-id="novo">Primeiro aparelho</button><button type="button" class="${SV.modo === 'entrar' ? 'on' : ''}" data-act="svModo" data-id="entrar">Já uso em outro</button></div>
+    <p class="hint" style="margin:0 2px 14px">${SV.modo === 'novo'
+      ? 'Crie uma senha de sincronização. Use uma frase longa que você não esqueça, por exemplo quatro palavras. Seus dados são criptografados com ela antes de sair do aparelho. <b>Sem ela, os dados da nuvem não podem ser recuperados por ninguém.</b>'
+      : 'Digite a mesma senha de sincronização que você criou no outro aparelho. Os dados dos dois aparelhos serão juntados.'}</p>
+    <div class="field"><label for="svSenha">Senha de sincronização</label><input id="svSenha" type="password" autocomplete="new-password" autocapitalize="off"></div>
+    ${SV.modo === 'novo' ? `<div class="field"><label for="svSenha2">Repita a senha</label><input id="svSenha2" type="password" autocomplete="new-password" autocapitalize="off"></div>` : ''}
+    <button class="btn pri full" data-act="svAtivar" id="svBtn">Ativar</button>`);
+}
+async function ativarSync() {
+  const senha = $('#svSenha').value, s2 = $('#svSenha2');
+  if (senha.length < 10) { toast('Use pelo menos 10 caracteres'); return; }
+  if (s2 && s2.value !== senha) { toast('As senhas não são iguais'); return; }
+  const btn = $('#svBtn'); btn.disabled = true; btn.textContent = 'Ativando…';
+  try {
+    SY = await derivar(senha);
+    const g = await api('GET');
+    if (SV.modo === 'novo' && g.status === 200) { SY = null; toast('Já existe uma sincronização com essa senha. Escolha "Já uso em outro".'); return; }
+    if (SV.modo === 'entrar' && g.status === 404) { SY = null; toast('Senha incorreta ou sincronização não encontrada'); return; }
+    if (g.status !== 200 && g.status !== 404) throw new Error();
+    if (g.status === 200) await decifrar(g.j.blob); // confere que a senha abre os dados
+    saveSync(); closeSheet(); await sincronizar(); render(); toast('Sincronização ativada');
+  } catch (e) { SY = null; toast('Não consegui conectar. Tente de novo.'); }
+  finally { if (btn.isConnected) { btn.disabled = false; btn.textContent = 'Ativar'; } }
+}
+function blocoSync() {
+  if (!syncPronto()) return `<p class="sub" style="margin:0 2px">O servidor de sincronização ainda não foi configurado.</p>`;
+  if (!SY) return `<p class="sub" style="margin:0 2px 10px">Mantém o celular e o notebook com os mesmos dados. Tudo é criptografado com uma senha sua antes de sair do aparelho.</p>
+    <button class="btn" data-act="abrirSync">Ativar sincronização</button>`;
+  return `<div class="list"><div class="row"><span class="rmain"><span class="rt">Ativa neste aparelho</span>
+    <span class="rs"><span>${SY.ult ? `última vez ${dm(SY.ult)} às ${SY.ult.slice(11)}` : 'ainda não sincronizou'}</span>${SY.erro ? `<span style="color:var(--red)">${esc(SY.erro)}</span>` : ''}</span></span>
+    <button class="btn sm" data-act="syncAgora">Sincronizar agora</button></div></div>
+    <div style="margin-top:10px"><button class="btn danger sm" data-act="desligarSync">Desativar neste aparelho</button></div>`;
+}
+
 /* ---------- backup ---------- */
 async function exportar() {
   const nome = `financas-backup-${todayStr()}.json`;
@@ -1204,7 +1435,7 @@ function importar(file) {
       const d = JSON.parse(rd.result);
       if (!d || !Array.isArray(d.lanc)) throw 0;
       confirmar(`Substituir os dados atuais pelos do backup (${d.lanc.length} lançamentos)?`, 'Substituir', () => {
-        localStorage.setItem(KEY, JSON.stringify(d)); load(); closeSheet(); render(); toast('Backup importado'); });
+        const loc = { ocultar: S.ocultar, ultimoBackup: S.ultimoBackup }; S = d; normalizar(); Object.assign(S, loc); save(); closeSheet(); render(); toast('Backup importado'); });
     } catch (e) { toast('Este arquivo não é um backup do Finanças'); }
   };
   rd.readAsText(file);
@@ -1261,6 +1492,11 @@ const A = {
   cobrar: id => cobrar(id),
   catTipo: t => { ui.catTipo = t; render(); },
   ordem: o => { ui.ordem = o; render(); },
+  abrirSync: () => { SV = { modo: 'novo' }; formSync(); },
+  svModo: m => { SV.modo = m; formSync(); },
+  svAtivar: () => ativarSync(),
+  syncAgora: () => sincronizar(true),
+  desligarSync: () => confirmar('Desativar a sincronização neste aparelho? Os dados continuam aqui e na nuvem.', 'Desativar', () => { SY = null; saveSync(); closeSheet(); render(); toast('Sincronização desativada'); }),
   editCat: id => formCat(id),
   kCor: c => { lerCat(); K.cor = c; drawCat(); },
   kAddSub: () => { lerCat(); const n = $('#kSub').value.trim(); if (!n) return; n.split(',').map(x => x.trim()).filter(Boolean).forEach(x => K.subs.push({ id: uid(), nome: x })); drawCat(); },
@@ -1359,7 +1595,7 @@ const A = {
   excluirMeta: () => confirmar('Excluir esta meta?', 'Excluir', () => { S.metas = S.metas.filter(m => m !== M); save(); closeSheet(); render(); toast('Meta excluída'); }),
   importar: () => $('#fileImp').click(),
   apagarTudo: () => {
-    confirmar('Apagar todos os dados do app? Sem backup, não dá para recuperar.', 'Apagar tudo', () => { localStorage.removeItem(KEY); load(); closeSheet(); render(); toast('Dados apagados'); });
+    confirmar(`Apagar todos os dados do app?${SY ? ' Isso também apaga dos outros aparelhos sincronizados.' : ''} Sem backup, não dá para recuperar.`, 'Apagar tudo', () => { const del = S.del; S = { del }; normalizar(); save(); closeSheet(); render(); toast('Dados apagados'); });
   },
 };
 document.addEventListener('click', e => {
@@ -1373,13 +1609,23 @@ document.addEventListener('change', e => {
   if ((id === 'fRep' || id === 'fDiv') && F) { lerFormL(); drawFormL(); }
   if (id === 'cA' || id === 'cB') { if (e.target.value) { ui[id] = e.target.value; render(); } }
 });
-document.addEventListener('keydown', e => { if (e.target.id === 'bq' && e.key === 'Enter') e.target.blur(); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+document.addEventListener('keydown', e => {
+  if (e.target.id === 'bq' && e.key === 'Enter') e.target.blur();
+  if (e.key === 'Escape' && $('.sheet.show')) { closeSheet(); return; }
+  const digitando = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
+  if (digitando || e.metaKey || e.ctrlKey || e.altKey || $('.sheet.show')) return;
+  if (e.key === 'n' || e.key === 'N') { e.preventDefault(); formL(null); }
+  if (e.key === '/') { e.preventDefault(); A.buscar(); setTimeout(() => $('#bq')?.focus(), 50); }
+});
+let ultLarg = innerWidth >= 900;
+addEventListener('resize', () => { const l = innerWidth >= 900; if (l !== ultLarg) { ultLarg = l; render(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); sincronizar(); } });
+window.addEventListener('online', () => sincronizar());
 
 /* =========================================================
    INÍCIO
    ========================================================= */
-load(); render(); abrirPorLink();
+load(); render(); abrirPorLink(); sincronizar();
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 if ('serviceWorker' in navigator && window.self === window.top && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
