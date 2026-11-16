@@ -24,7 +24,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,system-ui,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
-body{min-height:100vh;overflow-x:hidden;padding:calc(var(--safe-t) + 12px) 16px calc(var(--safe-b) + 96px);overscroll-behavior-y:none}
+body{min-height:100vh;overflow-x:hidden;padding:calc(var(--safe-t) + 12px) 16px calc(var(--safe-b) + 170px);overscroll-behavior-y:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select{font:inherit;color:var(--ink);background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;width:100%;font-size:16px;outline:none}
 input:focus,select:focus{border-color:var(--blue)}
@@ -126,11 +126,11 @@ h2 small{font-weight:400;color:var(--ink3);font-size:14px;margin-left:6px}
 
 /* barra inferior */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(10,20,38,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:6px 8px calc(var(--safe-b) + 6px)}
-nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 76px 1fr 1fr;align-items:center}
+nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);align-items:center}
 nav.tabs button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--ink3);padding:4px 0}
 nav.tabs button.on{color:var(--ink)}
 nav.tabs svg{width:24px;height:24px}
-.fab{width:58px;height:58px;border-radius:29px;margin:-26px auto 0;background:linear-gradient(160deg,#4F7BFF,#2A4FD6);color:#fff;display:grid!important;place-items:center;box-shadow:0 8px 24px rgba(42,79,214,.45)}
+.fab{position:absolute;right:16px;bottom:calc(100% + 14px);width:58px;height:58px;border-radius:29px;margin:0;background:linear-gradient(160deg,#4F7BFF,#2A4FD6);color:#fff;display:grid!important;place-items:center;box-shadow:0 8px 24px rgba(42,79,214,.45)}
 .fab svg{width:28px!important;height:28px!important}
 
 /* folha (modal) */
@@ -209,8 +209,20 @@ nav.tabs svg{width:24px;height:24px}
 .toast.acao{pointer-events:auto;display:flex;align-items:center;gap:14px;padding:8px 8px 8px 16px}
 .toast.acao button{background:rgba(255,255,255,.12);color:var(--gold);font-weight:600;padding:7px 12px;border-radius:9px;font-size:15px}
 .ttag{font-size:12px;color:var(--blue2)}
-.toast{white-space:nowrap;position:fixed;left:50%;bottom:calc(var(--safe-b) + 92px);transform:translate(-50%,20px);background:#22355C;color:var(--ink);padding:10px 16px;border-radius:12px;font-size:15px;opacity:0;transition:all .25s;z-index:60;pointer-events:none}
+.toast{white-space:nowrap;position:fixed;left:50%;bottom:calc(var(--safe-b) + 158px);transform:translate(-50%,20px);background:#22355C;color:var(--ink);padding:10px 16px;border-radius:12px;font-size:15px;opacity:0;transition:all .25s;z-index:60;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.row.agrow{padding:0 14px 0 12px;gap:10px}
+.agmain{padding:13px 0;text-align:left;flex:1;min-width:0;display:flex;flex-direction:column}
+.ck{width:26px;height:26px;border-radius:13px;border:2px solid var(--ink3);flex:none;display:grid;place-items:center}
+.ck.on{background:var(--green);border-color:var(--green)}
+.ck.on::after{content:"";width:10px;height:5px;border-left:2px solid #08111F;border-bottom:2px solid #08111F;transform:translateY(-1px) rotate(-45deg)}
+.agbar{width:4px;align-self:stretch;margin:12px 11px;border-radius:2px;background:var(--blue2);flex:none}
+.rt.feito{text-decoration:line-through;color:var(--ink3)}
+.late{color:var(--red)}
+.agday{margin-top:18px}
+.agday::first-letter{text-transform:uppercase}
+.notifbox{background:rgba(61,107,255,.12);border:1px solid rgba(61,107,255,.35);border-radius:16px;padding:14px;margin-bottom:14px;color:#DCE5FB;font-size:14px}
+.notifbox .btn{margin-top:10px}
 .desk{display:none!important}
 .cols>div{min-width:0}
 @media (min-width:900px){
@@ -230,7 +242,7 @@ nav.tabs svg{width:24px;height:24px}
   .topbtns .iconbtn{display:none}
   nav.tabs button:hover{background:rgba(255,255,255,.04)}
   nav.tabs button.on{background:var(--s2);color:var(--ink)}
-  nav.tabs .fab{order:-1;width:100%;height:46px;border-radius:12px;margin:0 0 14px;display:flex!important;justify-content:center!important;gap:8px;font-weight:600;font-size:15px;color:#fff;box-shadow:none}
+  nav.tabs .fab{position:static;order:-1;width:100%;height:46px;border-radius:12px;margin:0 0 14px;display:flex!important;justify-content:center!important;gap:8px;font-weight:600;font-size:15px;color:#fff;box-shadow:none}
   nav.tabs .fab svg{width:20px!important;height:20px!important}
   nav.tabs .brand{order:-2}
   .hint-kb{margin-top:auto;font-size:12px;color:var(--ink3);padding:10px;line-height:1.5}
@@ -258,12 +270,13 @@ nav.tabs svg{width:24px;height:24px}
   <div class="brand desk">Finanças</div>
   <button data-act="tab" data-id="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Início</button>
   <button data-act="tab" data-id="dia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4.5" width="18" height="16.5" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Dia</button>
+  <button data-act="tab" data-id="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>Agenda</button>
   <button class="fab" data-act="novo" aria-label="Novo lançamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="desk">Novo lançamento</span></button>
   <button data-act="tab" data-id="resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Resumo</button>
   <button data-act="tab" data-id="faturas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6.5 15h4"/></svg>Faturas</button>
   <button class="desk" data-act="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>Buscar</button>
   <button class="desk" data-act="tab" data-id="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Ajustes</button>
-  <div class="desk hint-kb">Atalhos: <b>N</b> novo lançamento, <b>/</b> buscar, <b>Esc</b> fechar</div>
+  <div class="desk hint-kb">Atalhos: <b>N</b> novo, <b>/</b> buscar, <b>Esc</b> fechar</div>
 </div></nav>
 
 <div id="layer"></div>
@@ -354,6 +367,9 @@ function normalizar() {
   S.ultimoBackup ??= null;
   S.ocultar ??= false;
   S.receber ??= [];
+  S.agenda ??= [];
+  S.subs ??= [];
+  S.prefs ??= [{ id: 'notif', resumo: true, agenda: true }];
   S.cats ??= { gasto: CATS_G.map(c => ({ ...c, subs: [] })), entrada: CATS_E.map(c => ({ ...c, subs: [] })) };
 }
 function persistir() {
@@ -363,7 +379,7 @@ function persistir() {
 function save() { carimbar(); persistir(); agendarSync(); }
 
 /* ---------- carimbos de alteração (para a sincronização saber o que é mais novo) ---------- */
-const COLS = ['lanc', 'recs', 'pags', 'metas', 'receber', 'cards'];
+const COLS = ['lanc', 'recs', 'pags', 'metas', 'receber', 'cards', 'agenda', 'subs', 'prefs'];
 function itensSync(st) {
   const out = [];
   for (const c of COLS) for (const it of st[c] || []) out.push([c + ':' + it.id, it]);
@@ -481,7 +497,9 @@ function render() {
   gerar();
   document.querySelectorAll('nav.tabs [data-act=tab]').forEach(b => b.classList.toggle('on', b.dataset.id === ui.tab || (b.dataset.id === 'ajustes' && (ui.tab === 'cats' || ui.tab === 'receber'))));
   document.querySelectorAll('nav.tabs [data-act=buscar]').forEach(b => b.classList.toggle('on', ui.tab === 'busca'));
-  $('#view').innerHTML = ({ home: vHome, dia: vDia, resumo: vResumo, faturas: vFaturas, ajustes: vAjustes, busca: vBusca, receber: vReceber, cats: vCats })[ui.tab]();
+  const fl = $('.fab .desk'); if (fl) fl.textContent = ui.tab === 'agenda' ? 'Novo na agenda' : 'Novo lançamento';
+  $('.fab').setAttribute('aria-label', ui.tab === 'agenda' ? 'Novo na agenda' : 'Novo lançamento');
+  $('#view').innerHTML = ({ home: vHome, dia: vDia, resumo: vResumo, faturas: vFaturas, ajustes: vAjustes, busca: vBusca, receber: vReceber, cats: vCats, agenda: vAgenda })[ui.tab]();
   // diminui a fonte dos números que não cabem no quadrinho
   document.querySelectorAll('.stat .num').forEach(el => { let f = 17; while (el.scrollWidth > el.clientWidth && f > 11) el.style.fontSize = (--f) + 'px'; });
 }
@@ -529,6 +547,7 @@ function vHome() {
     <div class="stat"><div class="lbl">Gasto no mês</div><div class="num">${fmt(soma(mes, 'gasto'))}</div></div>
     <div class="stat"><div class="lbl">Entrou no mês</div><div class="num" style="color:var(--green)">${fmt(soma(mes, 'entrada'))}</div></div>
   </div>
+  ${agendaHoje()}
   ${aReceberResumo()}
   ${prox.length ? `<h2>Faturas a pagar</h2><div class="list">${prox.map(p => `
     <button class="row" data-act="tab" data-id="faturas"><span class="rmain"><span class="rt">${esc(p.c.nome)}</span>
@@ -599,6 +618,72 @@ function calendario(dSel) {
   return `<div class="cal"><div class="ch"><button data-act="calMv" data-id="-1" aria-label="Mês anterior">‹</button><b>${nomeMes(ym)}</b><button data-act="calMv" data-id="1" aria-label="Próximo mês">›</button></div>
     <div class="cgrid">${cel}</div>
     <div class="clegend">menos ${RAMPA.map(c => `<i style="background:${c}"></i>`).join('')} mais</div></div>`;
+}
+
+/* ---------- Agenda ---------- */
+const AVISOS = [[0, 'Na hora'], [15, '15 min antes'], [30, '30 min antes'], [60, '1 h antes'], [1440, '1 dia antes'], [null, 'Sem aviso']];
+const REPS = [['nunca', 'Não repete'], ['dia', 'Todo dia'], ['semana', 'Toda semana'], ['mes', 'Todo mês']];
+const REP_TXT = { dia: 'todo dia', semana: 'toda semana', mes: 'todo mês' };
+function proxData(d, rep, diaOrig) {
+  if (rep === 'dia') return addD(d, 1);
+  if (rep === 'semana') return addD(d, 7);
+  if (rep === 'mes') return dateIn(addM(d.slice(0, 7), 1), diaOrig);
+  return null;
+}
+function ocorr(it, de, ate) {
+  if (!it.data) return [];
+  if (it.tipo === 'tarefa') return it.data >= de && it.data <= ate ? [it.data] : [];
+  const out = [], dia = +it.data.slice(8, 10);
+  let d = it.data, n = 0;
+  while (d && d <= ate && n++ < 1000) { if (d >= de) out.push(d); if (!it.rep || it.rep === 'nunca') break; d = proxData(d, it.rep, dia); }
+  return out;
+}
+const naData = d => S.agenda.filter(it => it.tipo === 'tarefa' ? (!it.feito && it.data === d) : ocorr(it, d, d).length)
+  .sort((a, b) => (a.hora || '99').localeCompare(b.hora || '99'));
+function rowAg(it, d) {
+  const hoje = todayStr(), atras = it.tipo === 'tarefa' && !it.feito && it.data && it.data < hoje;
+  const aviso = it.tipo === 'evento' && it.aviso != null ? (AVISOS.find(a => a[0] === it.aviso) || [0, ''])[1].toLowerCase() : '';
+  return `<div class="row agrow">${it.tipo === 'tarefa'
+      ? `<button class="ck ${it.feito ? 'on' : ''}" data-act="agFeito" data-id="${it.id}" aria-label="${it.feito ? 'Desmarcar' : 'Concluir'}"></button>`
+      : '<span class="agbar"></span>'}
+    <button class="agmain" data-act="agEdit" data-id="${it.id}"><span class="rt ${it.feito ? 'feito' : ''}">${esc(it.titulo)}</span>
+      <span class="rs">${atras ? `<span class="late">atrasada, ${dm(it.data)}</span>` : ''}${it.hora ? `<span>${it.hora}</span>` : ''}${aviso ? `<span>aviso ${aviso}</span>` : ''}${it.rep && it.rep !== 'nunca' ? `<span>↻ ${REP_TXT[it.rep]}</span>` : ''}${it.tipo === 'tarefa' && !it.data && !it.feito ? '<span>sem data</span>' : ''}</span></button></div>`;
+}
+function agendaHoje() {
+  const hoje = todayStr();
+  const its = [...S.agenda.filter(it => it.tipo === 'tarefa' && !it.feito && it.data && it.data < hoje), ...naData(hoje)].slice(0, 5);
+  if (!its.length) return '';
+  return `<h2>Hoje na agenda</h2><div class="list">${its.map(it => rowAg(it, hoje)).join('')}</div>`;
+}
+function bannerNotif() {
+  if (!syncPronto() || (S.subs || []).some(x => x.ep === localStorage.getItem(MEU_EP))) return '';
+  if (!SY) return `<div class="notifbox">Para receber avisos no celular, ative a sincronização em Ajustes e depois volte aqui.</div>`;
+  if (ehIOS && !standalone()) return `<div class="notifbox">Para receber avisos, abra o Finanças pelo ícone da Tela de Início.</div>`;
+  if (!pushOk()) return '';
+  if (Notification.permission === 'denied') return `<div class="notifbox">As notificações estão bloqueadas. Libere em Ajustes do iPhone > Notificações > Finanças.</div>`;
+  return `<div class="notifbox">Receba os avisos da agenda e o resumo do dia às 20h.<br><button class="btn pri" data-act="notifAtivar">Ativar notificações</button></div>`;
+}
+function vAgenda() {
+  const hoje = todayStr();
+  const atrasadas = S.agenda.filter(it => it.tipo === 'tarefa' && !it.feito && it.data && it.data < hoje).sort((a, b) => a.data.localeCompare(b.data));
+  const semData = S.agenda.filter(it => it.tipo === 'tarefa' && !it.feito && !it.data);
+  const feitas = S.agenda.filter(it => it.tipo === 'tarefa' && it.feito).sort((a, b) => (b.feitoEm || '').localeCompare(a.feitoEm || '')).slice(0, 15);
+  const bloco = (titulo, its, d, vazio) => its.length || vazio ? `<h2 class="agday">${titulo}</h2>${its.length ? `<div class="list">${its.map(it => rowAg(it, d)).join('')}</div>` : `<div class="emptybox" style="padding:16px">${vazio}</div>`}` : '';
+  let dias = '';
+  for (let i = 2; i <= 7; i++) { const d = addD(hoje, i); dias += bloco(nomeDia(d), naData(d), d); }
+  const prox = S.agenda.filter(it => it.tipo === 'evento' && ocorr(it, addD(hoje, 8), addD(hoje, 60)).length).length;
+  return `<div class="top"><h1>Agenda</h1></div>
+  ${bannerNotif()}
+  <div class="cols"><div>
+  ${bloco('Atrasadas', atrasadas, null)}
+  ${bloco('Hoje', naData(hoje), hoje, 'Nada para hoje. Toque no + para criar um compromisso ou tarefa.')}
+  ${bloco('Amanhã', naData(addD(hoje, 1)), addD(hoje, 1))}
+  ${dias}
+  ${prox ? `<p class="sub" style="margin:14px 2px 0">Mais ${prox} ${prox === 1 ? 'compromisso' : 'compromissos'} depois desta semana.</p>` : ''}
+  </div><div>
+  ${bloco('Sem data', semData, null)}
+  ${feitas.length ? `<h2 class="agday">Concluídas <small><button class="sub" data-act="agVerFeitas">${ui.verFeitas ? 'ocultar' : 'mostrar'}</button></small></h2>${ui.verFeitas ? `<div class="list">${feitas.map(it => rowAg(it)).join('')}</div>` : ''}` : ''}
+  </div></div>`;
 }
 
 /* ---------- Contas a receber ---------- */
@@ -944,6 +1029,8 @@ function vAjustes() {
   <button class="row" data-act="tab" data-id="receber"><span class="rmain"><span class="rt">Contas a receber</span><span class="rs"><span>${pendRec().length ? pendRec().length + ' em aberto' : 'nenhuma em aberto'}</span></span></span><span class="sub">Abrir</span></button></div>
   <h2>Sincronização</h2>
   ${blocoSync()}
+  <h2>Notificações</h2>
+  ${blocoNotif()}
   <h2>Atalho da Siri</h2>
   <p class="sub" style="margin:0 2px 6px">No app Atalhos, crie um atalho com estas ações:</p>
   <ol class="sub" style="margin:0 2px 6px 20px;line-height:1.6"><li>"Pedir Entrada", tipo Número, com a pergunta "Quanto?"</li><li>"Abrir URLs", com o endereço abaixo seguido da variável "Entrada fornecida"</li></ol>
@@ -958,7 +1045,7 @@ function vAjustes() {
   <div class="actions"><button class="btn" data-act="csv" data-id="mes">Este mês</button><button class="btn" data-act="csv" data-id="ano">Este ano</button><button class="btn" data-act="csv" data-id="tudo">Tudo</button></div>
   <h2>Zona de perigo</h2>
   <button class="btn danger" data-act="apagarTudo">Apagar todos os dados</button>
-  <p class="sub" style="margin:28px 2px 0">Finanças, versão 6</p>`;
+  <p class="sub" style="margin:28px 2px 0">Finanças, versão 7</p>`;
 }
 
 /* =========================================================
@@ -1184,6 +1271,144 @@ async function resumoFatura(cid, ref) {
   catch (e) { openSheet(`<h3>Resumo<button class="btn sm" data-act="fechar">Fechar</button></h3><p class="hint" style="margin:0 2px 10px">Copie o texto abaixo.</p><textarea style="width:100%;height:260px;background:var(--s2);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px;font:15px/1.4 -apple-system,system-ui">${esc(texto)}</textarea>`); }
 }
 
+/* ---------- formulário da agenda ---------- */
+let G = null;
+function formAg(it) {
+  const h = new Date(); h.setHours(h.getHours() + 1);
+  G = it ? { ...it } : { tipo: 'evento', titulo: '', data: todayStr(), hora: `${pad(h.getHours())}:00`, aviso: 15, rep: 'nunca' };
+  G.novo = !it; drawAg();
+}
+function drawAg() {
+  const ev = G.tipo === 'evento';
+  openSheet(`
+    <h3>${G.novo ? 'Novo na agenda' : (ev ? 'Editar compromisso' : 'Editar tarefa')}<button class="btn sm" data-act="fechar">Cancelar</button></h3>
+    ${G.novo ? `<div class="seg"><button type="button" class="${ev ? 'on' : ''}" data-act="agTipo" data-id="evento">Compromisso</button><button type="button" class="${!ev ? 'on' : ''}" data-act="agTipo" data-id="tarefa">Tarefa</button></div>` : ''}
+    <div class="field"><label for="gTit">${ev ? 'O quê' : 'Tarefa'}</label><input id="gTit" value="${esc(G.titulo)}" placeholder="${ev ? 'Ex.: prova de estatística' : 'Ex.: pagar boleto da faculdade'}"></div>
+    <div class="two">
+      <div class="field"><label for="gData">Data${ev ? '' : ' (opcional)'}</label><input id="gData" type="date" value="${G.data || ''}"></div>
+      <div class="field"><label for="gHora">Hora${ev ? '' : ' (opcional)'}</label><input id="gHora" type="time" value="${G.hora || ''}"></div>
+    </div>
+    ${!ev ? `<p class="hint" style="margin:-6px 2px 14px">Com data e hora, você recebe uma notificação na hora.</p>` : ''}
+    ${ev ? `<div class="field"><span class="flabel">Aviso</span>${chips(AVISOS.map(([v, n]) => ({ id: v == null ? 'x' : String(v), nome: n })), G.aviso == null ? 'x' : String(G.aviso), 'agAviso')}</div>` : ''}
+    <div class="field"><span class="flabel">Repetir</span>${chips(REPS.map(([v, n]) => ({ id: v, nome: n })), G.rep || 'nunca', 'agRep')}</div>
+    <button class="btn pri full" data-act="agSalvar">Salvar</button>
+    ${!G.novo ? `<div style="margin-top:10px"><button class="btn danger full" data-act="agExcluir">Excluir</button></div>` : ''}`,
+    sh => { if (G.novo && !G.titulo && !G._foco) { G._foco = true; setTimeout(() => sh.querySelector('#gTit')?.focus(), 300); } });
+}
+function lerAg() { G.titulo = $('#gTit').value; G.data = $('#gData').value || null; G.hora = $('#gHora').value || null; }
+
+/* ---------- notificações (lacradas no aparelho) ---------- */
+const VAPID_PUB = 'BOyEVqV-CpRG9EPJ8v5ztO2SIZLvh2jnF3mk7hZrt515v3u_tRjsx_3dKdvjdHrrmeuvWwZ-dLd8wTIt1Gg79vs';
+const MEU_EP = 'financas.meuEndpoint', KEY_FILA = 'financas.fila';
+const pushOk = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const ehIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const b64uDec = t => { t = t.replace(/-/g, '+').replace(/_/g, '/'); return Uint8Array.from(atob(t + '='.repeat((4 - t.length % 4) % 4)), c => c.charCodeAt(0)); };
+const prefN = () => S.prefs.find(p => p.id === 'notif') || { resumo: true, agenda: true };
+async function inscrever(pedir) {
+  if (!pushOk()) return false;
+  if (pedir) { if ((await Notification.requestPermission()) !== 'granted') return false; }
+  else if (Notification.permission !== 'granted') return false;
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uDec(VAPID_PUB) });
+  const j = sub.toJSON(), antigo = localStorage.getItem(MEU_EP);
+  let mudou = false;
+  if (antigo && antigo !== j.endpoint) { S.subs = S.subs.filter(x => x.ep !== antigo); mudou = true; }
+  if (!S.subs.some(x => x.ep === j.endpoint)) {
+    S.subs.push({ id: uid(), ep: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, nome: ehIOS ? 'iPhone' : innerWidth >= 900 ? 'Notebook' : 'Outro aparelho', desde: nowStr() });
+    mudou = true;
+  }
+  localStorage.setItem(MEU_EP, j.endpoint);
+  if (mudou) save();
+  return true;
+}
+// Criptografia Web Push (RFC 8291, aes128gcm): o aparelho lacra a mensagem para cada aparelho inscrito
+async function selar(sub, msg) {
+  const ua = b64uDec(sub.p256dh), auth = b64uDec(sub.auth);
+  const cat = (...a) => { const o = new Uint8Array(a.reduce((n, x) => n + x.length, 0)); let i = 0; for (const x of a) { o.set(x, i); i += x.length; } return o; };
+  const hmac = async (k, d) => new Uint8Array(await crypto.subtle.sign('HMAC', await crypto.subtle.importKey('raw', k, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']), d));
+  const kp = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const asPub = new Uint8Array(await crypto.subtle.exportKey('raw', kp.publicKey));
+  const uaKey = await crypto.subtle.importKey('raw', ua, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  const ecdh = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: uaKey }, kp.privateKey, 256));
+  const um = new Uint8Array([1]);
+  const ikm = await hmac(await hmac(auth, ecdh), cat(enc.encode('WebPush: info\0'), ua, asPub, um));
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const prk = await hmac(salt, ikm);
+  const cek = (await hmac(prk, cat(enc.encode('Content-Encoding: aes128gcm\0'), um))).slice(0, 16);
+  const nonce = (await hmac(prk, cat(enc.encode('Content-Encoding: nonce\0'), um))).slice(0, 12);
+  const pt = cat(enc.encode(JSON.stringify(msg)), new Uint8Array([2]));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt']), pt));
+  const hdr = new Uint8Array(86); hdr.set(salt, 0); new DataView(hdr.buffer).setUint32(16, 4096); hdr[20] = 65; hdr.set(asPub, 21);
+  return b64(cat(hdr, ct));
+}
+function resumoDia(d) {
+  const gs = S.lanc.filter(l => l.tipo === 'gasto' && !isPai(l) && l.data.startsWith(d));
+  if (!gs.length) return { title: 'Resumo do dia', body: 'Nenhum gasto registrado hoje. Esqueceu de lançar algo?', tag: 'resumo', url: './?ir=dia' };
+  const t = gs.reduce((a, l) => a + valRel(l), 0), m = gs.reduce((a, l) => valRel(l) > valRel(a) ? l : a);
+  return { title: 'Resumo do dia', body: `Hoje você gastou ${fmt(t)}. Maior gasto: ${m.desc || catNome(m)}, ${fmt(valRel(m))}.`, tag: 'resumo', url: './?ir=dia' };
+}
+function textoAviso(aviso, hora) {
+  if (aviso === 0) return `Começa agora, ${hora}`;
+  if (aviso === 1440) return `Amanhã às ${hora}`;
+  if (aviso === 60) return `Em 1 hora, às ${hora}`;
+  return `Em ${aviso} minutos, às ${hora}`;
+}
+function filaPlana() {
+  const out = [], pr = prefN(), agora = Date.now(), hoje = todayStr(), fim = addD(hoje, 14);
+  if (pr.resumo) for (let i = 0; i <= 14; i++) {
+    const d = addD(hoje, i), at = new Date(`${d}T20:00`).getTime();
+    if (at >= agora - 60e3) out.push({ k: 'r-' + d, at, msg: resumoDia(d) });
+  }
+  if (pr.agenda) for (const it of S.agenda) {
+    if (it.feito || !it.hora) continue;
+    for (const d of ocorr(it, hoje, fim)) {
+      const ini = new Date(`${d}T${it.hora}`).getTime();
+      let at, body;
+      if (it.tipo === 'evento') { if (it.aviso == null) continue; at = ini - it.aviso * 60e3; body = textoAviso(it.aviso, it.hora); }
+      else { at = ini; body = 'Tarefa para agora'; }
+      if (at < agora - 60e3) continue;
+      out.push({ k: `a-${it.id}-${d}-${it.hora}-${it.aviso ?? 't'}`, at, msg: { title: it.titulo, body, tag: `ag-${it.id}-${d}`, url: './?ir=agenda' } });
+    }
+  }
+  return out.sort((a, b) => a.at - b.at);
+}
+let filaTimer = null;
+function agendarFila(ms = 3000) { if (!SY || !syncPronto()) return; clearTimeout(filaTimer); filaTimer = setTimeout(() => enviarFila().catch(() => {}), ms); }
+async function enviarFila(forcar, extra) {
+  if (!SY || !syncPronto()) return;
+  const plano = filaPlana(); if (extra) plano.push(...extra);
+  const subs = S.subs || [];
+  const assin = await hexDe(enc.encode(JSON.stringify([plano, subs.map(x => x.ep)])), 'fila');
+  let ant = {}; try { ant = JSON.parse(localStorage.getItem(KEY_FILA)) || {}; } catch (e) {}
+  if (!forcar && ant.h === assin && Date.now() - (ant.t || 0) < 6 * 3600e3) return;
+  const items = [];
+  for (const it of plano) for (const x of subs) items.push({ k: it.k + '|' + x.id, at: it.at, ep: x.ep, b: await selar(x, it.msg) });
+  const r = await fetch(`${SYNC_URL}/a/${SY.id}`, { method: 'PUT', cache: 'no-store', headers: { Authorization: 'Bearer ' + SY.tok, 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) });
+  if (!r.ok) throw new Error('fila ' + r.status);
+  const j = await r.json();
+  if (j.gone && j.gone.length) { const n = S.subs.length; S.subs = S.subs.filter(x => !j.gone.includes(x.ep)); if (S.subs.length !== n) save(); }
+  localStorage.setItem(KEY_FILA, JSON.stringify({ h: assin, t: Date.now() }));
+}
+function blocoNotif() {
+  if (!syncPronto()) return '';
+  if (!SY) return `<p class="sub" style="margin:0 2px">Para receber notificações, ative primeiro a sincronização.</p>`;
+  const pr = prefN(), meu = S.subs.find(x => x.ep === localStorage.getItem(MEU_EP));
+  let estado = null;
+  if (!pushOk()) estado = ehIOS && !standalone() ? 'Abra o Finanças pelo ícone da Tela de Início para ativar aqui.' : 'Este navegador não aceita notificações.';
+  else if (Notification.permission === 'denied') estado = 'Notificações bloqueadas neste aparelho. Libere nos ajustes do sistema.';
+  else if (meu) estado = 'Ativas neste aparelho.';
+  return `${estado ? `<p class="sub" style="margin:0 2px 10px">${estado}</p>` : ''}
+    ${pushOk() && !meu && Notification.permission !== 'denied' ? `<button class="btn pri" data-act="notifAtivar">Ativar notificações neste aparelho</button>` : ''}
+    <div class="list" style="margin-top:10px">
+      <div class="row switch"><span>Resumo do dia às 20h</span><input type="checkbox" id="nResumo" ${pr.resumo ? 'checked' : ''}></div>
+      <div class="row switch"><span>Avisos da agenda</span><input type="checkbox" id="nAgenda" ${pr.agenda ? 'checked' : ''}></div></div>
+    ${S.subs.length ? `<div class="flabel" style="margin-top:12px">Aparelhos que recebem</div><div class="list">${S.subs.map(x => `<div class="row"><span class="rmain"><span class="rt">${esc(x.nome)}${x === meu ? ' (este)' : ''}</span>
+      <span class="rs"><span>desde ${dm(x.desde || nowStr())}</span></span></span><button class="btn sm danger" data-act="notifRemover" data-id="${x.id}">Remover</button></div>`).join('')}</div>
+      <div style="margin-top:10px"><button class="btn" data-act="notifTeste">Enviar notificação de teste</button></div>` : ''}`;
+}
+
 /* ---------- conta a receber ---------- */
 function formReceber() {
   openSheet(`
@@ -1232,6 +1457,8 @@ const lerCat = () => { K.nome = $('#kNome').value; K.oculta = $('#kOculta').chec
 /* ---------- atalho (abre já com o lançamento preenchido) ---------- */
 function abrirPorLink() {
   const q = new URLSearchParams(location.search);
+  const ir = q.get('ir');
+  if (ir && ['home', 'dia', 'agenda', 'resumo', 'faturas'].includes(ir)) { history.replaceState(null, '', location.pathname); ui.tab = ir; render(); return; }
   if (!q.has('novo') && !q.has('valor')) return;
   history.replaceState(null, '', location.pathname);
   formL(null);
@@ -1347,6 +1574,7 @@ async function sincronizar(manual) {
       if (p.status !== 409) throw new Error('PUT ' + p.status);
     }
     SY.ult = nowStr(); SY.erro = null;
+    agendarFila(1500);
     if (manual) toast('Sincronizado');
   } catch (e) {
     SY.erro = navigator.onLine === false ? 'sem internet' : 'não conseguiu conectar';
@@ -1459,7 +1687,54 @@ function toast(msg) { const t = $('#toast'); t.classList.remove('acao'); ACAO = 
    ========================================================= */
 const A = {
   tab: id => { ui.tab = id; ui.selCat = null; ui.selBar = null; render(); scrollTo(0, 0); },
-  novo: () => formL(null),
+  novo: () => ui.tab === 'agenda' ? formAg(null) : formL(null),
+  agNovo: () => formAg(null),
+  agEdit: id => formAg(S.agenda.find(x => x.id === id)),
+  agTipo: t => { lerAg(); G.tipo = t; if (t === 'tarefa' && G.novo) { G.hora = null; } else if (t === 'evento' && !G.hora) { const h = new Date(); h.setHours(h.getHours() + 1); G.hora = `${pad(h.getHours())}:00`; G.data ||= todayStr(); } drawAg(); },
+  agAviso: v => { lerAg(); G.aviso = v === 'x' ? null : +v; drawAg(); },
+  agRep: v => { lerAg(); G.rep = v; drawAg(); },
+  agSalvar: () => {
+    lerAg();
+    if (!G.titulo.trim()) { toast('Escreva o que é'); return; }
+    if (G.tipo === 'evento' && (!G.data || !G.hora)) { toast('Compromisso precisa de data e hora'); return; }
+    if (G.rep !== 'nunca' && !G.data) { toast('Para repetir, escolha uma data'); return; }
+    const d = { id: G.id || uid(), tipo: G.tipo, titulo: G.titulo.trim(), data: G.data, hora: G.hora, rep: G.rep || 'nunca', feito: !!G.feito, ...(G.feitoEm ? { feitoEm: G.feitoEm } : {}) };
+    if (G.tipo === 'evento') d.aviso = G.aviso;
+    const i = S.agenda.findIndex(x => x.id === d.id);
+    if (i >= 0) S.agenda[i] = d; else S.agenda.push(d);
+    save(); closeSheet(); render(); toast(G.novo ? 'Salvo na agenda' : 'Alterações salvas'); agendarFila(800);
+  },
+  agExcluir: () => {
+    const i = S.agenda.findIndex(x => x.id === G.id); if (i < 0) return;
+    const [rem] = S.agenda.splice(i, 1); save(); closeSheet(); render(); agendarFila(800);
+    toastAcao('Excluído da agenda', 'Desfazer', () => { S.agenda.push(rem); save(); render(); agendarFila(800); });
+  },
+  agFeito: id => {
+    const it = S.agenda.find(x => x.id === id); if (!it) return;
+    if (it.feito) { it.feito = false; delete it.feitoEm; save(); render(); agendarFila(800); return; }
+    if (it.rep && it.rep !== 'nunca' && it.data) {
+      const antes = it.data, dia = +it.data.slice(8, 10), hoje = todayStr();
+      do { it.data = proxData(it.data, it.rep, dia); } while (it.data < hoje);
+      save(); render(); agendarFila(800);
+      toastAcao(`Próxima: ${dm(it.data)}`, 'Desfazer', () => { it.data = antes; save(); render(); agendarFila(800); });
+      return;
+    }
+    it.feito = true; it.feitoEm = nowStr(); save(); render(); agendarFila(800);
+    toastAcao('Tarefa concluída', 'Desfazer', () => { it.feito = false; delete it.feitoEm; save(); render(); agendarFila(800); });
+  },
+  agVerFeitas: () => { ui.verFeitas = !ui.verFeitas; render(); },
+  notifAtivar: async () => {
+    try {
+      const ok = await inscrever(true);
+      if (!ok) { toast('Permissão não concedida'); render(); return; }
+      await enviarFila(true); render(); toast('Notificações ativadas');
+    } catch (e) { toast('Não consegui ativar as notificações'); }
+  },
+  notifRemover: id => confirmar('Parar de mandar notificações para este aparelho?', 'Remover', () => { S.subs = S.subs.filter(x => x.id !== id); save(); closeSheet(); render(); enviarFila(true).catch(() => {}); }),
+  notifTeste: async () => {
+    try { await enviarFila(true, [{ k: 'teste-' + Date.now(), at: Date.now(), msg: { title: 'Finanças', body: 'Notificação de teste. Está funcionando!', tag: 'teste', url: './' } }]); toast('Enviada. Deve chegar em até 1 minuto.'); }
+    catch (e) { toast('Não consegui enviar o teste'); }
+  },
   editL: id => formL(S.lanc.find(l => l.id === id)),
   fechar: closeSheet,
   fTipo: id => { lerFormL(); F.tipo = id; drawFormL(); },
@@ -1607,6 +1882,10 @@ document.addEventListener('change', e => {
   const id = e.target.id;
   if (id === 'fileImp' && e.target.files[0]) importar(e.target.files[0]);
   if ((id === 'fRep' || id === 'fDiv') && F) { lerFormL(); drawFormL(); }
+  if (id === 'nResumo' || id === 'nAgenda') {
+    let p = S.prefs.find(x => x.id === 'notif'); if (!p) { p = { id: 'notif', resumo: true, agenda: true }; S.prefs.push(p); }
+    p[id === 'nResumo' ? 'resumo' : 'agenda'] = e.target.checked; save(); agendarFila(500);
+  }
   if (id === 'cA' || id === 'cB') { if (e.target.value) { ui[id] = e.target.value; render(); } }
 });
 document.addEventListener('keydown', e => {
@@ -1614,7 +1893,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('.sheet.show')) { closeSheet(); return; }
   const digitando = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
   if (digitando || e.metaKey || e.ctrlKey || e.altKey || $('.sheet.show')) return;
-  if (e.key === 'n' || e.key === 'N') { e.preventDefault(); formL(null); }
+  if (e.key === 'n' || e.key === 'N') { e.preventDefault(); A.novo(); }
   if (e.key === '/') { e.preventDefault(); A.buscar(); setTimeout(() => $('#bq')?.focus(), 50); }
 });
 let ultLarg = innerWidth >= 900;
@@ -1626,6 +1905,7 @@ window.addEventListener('online', () => sincronizar());
    INÍCIO
    ========================================================= */
 load(); render(); abrirPorLink(); sincronizar();
+if (pushOk() && Notification.permission === 'granted') inscrever(false).catch(() => {});
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 if ('serviceWorker' in navigator && window.self === window.top && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>

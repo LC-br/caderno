@@ -1,6 +1,6 @@
 // Guarda os arquivos do app para funcionar sem internet.
 // Sempre tenta a versão mais nova primeiro; se estiver offline, usa a guardada.
-const CACHE = 'financas-v6';
+const CACHE = 'financas-v7';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -24,4 +24,22 @@ self.addEventListener('fetch', e => {
       })
       .catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
   );
+});
+
+// Notificações: a mensagem chega lacrada e o navegador abre; aqui só mostramos.
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'Finanças', {
+    body: d.body || '', tag: d.tag, icon: 'icon-192.png', badge: 'icon-192.png', data: { url: d.url || './' },
+  }));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || './', self.registration.scope).href;
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(lista => {
+    for (const c of lista) if ('focus' in c) { c.navigate ? c.navigate(url).catch(() => {}) : null; return c.focus(); }
+    return clients.openWindow(url);
+  }));
 });
