@@ -132,6 +132,7 @@ nav.tabs button.on{color:var(--ink)}
 nav.tabs svg{width:24px;height:24px}
 .fab{position:absolute;right:16px;bottom:calc(100% + 14px);width:58px;height:58px;border-radius:29px;margin:0;background:linear-gradient(160deg,#4F7BFF,#2A4FD6);color:#fff;display:grid!important;place-items:center;box-shadow:0 8px 24px rgba(42,79,214,.45)}
 .fab svg{width:28px!important;height:28px!important}
+nav.tabs .fab{color:#fff}
 
 /* folha (modal) */
 .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40;opacity:0;transition:opacity .2s}
@@ -223,6 +224,12 @@ nav.tabs svg{width:24px;height:24px}
 .agday::first-letter{text-transform:uppercase}
 .notifbox{background:rgba(61,107,255,.12);border:1px solid rgba(61,107,255,.35);border-radius:16px;padding:14px;margin-bottom:14px;color:#DCE5FB;font-size:14px}
 .notifbox .btn{margin-top:10px}
+.quick{display:flex;gap:8px;margin:0 0 14px}
+.quick input{flex:1;min-width:0;border-radius:14px;background:var(--s1);border-color:var(--line);padding:13px 14px}
+.quick button{width:48px;height:48px;border-radius:14px;background:var(--s1);border:1px solid var(--line);flex:none;display:grid;place-items:center;color:var(--ink2)}
+.quick button.go{background:var(--blue);border-color:var(--blue);color:#fff}
+.quick button.ouvindo{background:#E5484D;border-color:#E5484D;color:#fff;animation:pulsa 1.2s ease-in-out infinite}
+@keyframes pulsa{50%{opacity:.6}}
 .desk{display:none!important}
 .cols>div{min-width:0}
 @media (min-width:900px){
@@ -540,6 +547,7 @@ function vHome() {
   return `
   <div class="top"><h1>Finanças</h1><div class="topbtns"><button class="iconbtn" data-act="buscar" aria-label="Buscar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg></button><button class="iconbtn" data-act="tab" data-id="ajustes" aria-label="Ajustes">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div></div>
+  ${barraRapida('Ex.: 35 almoço pix')}
   <div class="cols wide-l"><div>
   ${hero}${avisoBackup()}
   <div class="stats">
@@ -620,6 +628,182 @@ function calendario(dSel) {
     <div class="clegend">menos ${RAMPA.map(c => `<i style="background:${c}"></i>`).join('')} mais</div></div>`;
 }
 
+/* ---------- Entender frases ("35 almoço pix", "me lembra amanhã às 10 de pagar o boleto") ---------- */
+const PAL_CAT = {
+  alim: 'almoco almocei jantar janta jantei lanche lanchei cafe padaria mercado supermercado restaurante ifood delivery pizza hamburguer acai comida bandejao feira sorvete marmita salgado doce',
+  transp: 'uber taxi onibus metro trem gasolina combustivel estacionamento pedagio passagem posto corrida bilhete',
+  lazer: 'cinema show bar balada cerveja festa jogo ingresso role boliche viagem passeio',
+  casa: 'aluguel condominio luz energia agua internet gas moveis limpeza',
+  saude: 'farmacia remedio medico consulta dentista exame academia hospital',
+  edu: 'livro livros curso faculdade maua material xerox apostila impressao',
+  parc: 'assinatura spotify netflix prime disney hbo icloud parcela mensalidade',
+};
+const PAL_ENT = { salario: 'salario', estagio: 'estagio bolsa', pixrec: 'pix transferencia', reemb: 'reembolso devolveu devolucao' };
+const DIAS_SEM = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+const MESES_N = MESES.map(m => norm(m));
+function entender(txt) {
+  const orig = String(txt || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+  const n = norm(orig);
+  const usado = new Array(n.length).fill(false);
+  const tira = (re, uma = true) => {
+    const r = new RegExp(re.source, 'g'); let m; const out = [];
+    while ((m = r.exec(n))) {
+      if (!m[0].length) { r.lastIndex++; continue; }
+      if (usado.slice(m.index, m.index + m[0].length).some(Boolean)) continue;
+      for (let i = m.index; i < m.index + m[0].length; i++) usado[i] = true;
+      out.push(m); if (uma) break;
+    }
+    return uma ? out[0] || null : out;
+  };
+  const tem = re => re.test(n);
+  const hoje = todayStr();
+  const temValor = tem(/r\$|\breais\b|\bgastei\b|\bpaguei\b|\bcomprei\b|\brecebi\b|\bganhei\b|\b\d+,\d{1,2}\b/);
+  const temHora = tem(/\b(as|a)\s+\d{1,2}\b|\b\d{1,2}h\d{0,2}\b|\b\d{1,2}:\d{2}\b|\bmeio-?dia\b|\bmeia-?noite\b/);
+  const pedeAgenda = tem(/\b(me lembr\w*|lembr(ar|e|ete)|tarefa|agenda|compromisso|marc(ar|a)|reuniao|prova|aula)\b/);
+  const temRepet = tem(/\b(todos? (?:os )?dias?|todo mes|mensalmente|diariamente|semanalmente|toda(?:s)? (?:as )?(?:semanas?|segunda|terca|quarta|quinta|sexta)|todos? (?:os )?(?:sabados?|domingos?))\b/);
+  const verboFuturo = tem(/\b(pagar|ligar|comprar|levar|buscar|entregar|estudar|mandar|enviar|renovar|agendar)\b/);
+  const ehAgenda = pedeAgenda || ((temHora || temRepet || (verboFuturo && !/\d/.test(n))) && !temValor);
+
+  // ----- repetição (agenda) -----
+  let rep = 'nunca', diaRep = null, semRep = null;
+  if (ehAgenda) {
+    let m;
+    if ((m = tira(/\btodo (?:o )?dia (\d{1,2})\b|\btodo mes(?: no dia (\d{1,2}))?\b|\bmensalmente\b/))) { rep = 'mes'; diaRep = +(m[1] || m[2] || 0) || null; }
+    else if ((m = tira(/\bto(?:d[ao]s?) (?:as |os )?(segunda|terca|quarta|quinta|sexta|sabado|domingo)s?(?:-feiras?)?\b/))) { rep = 'semana'; semRep = DIAS_SEM.indexOf(m[1]); }
+    else if (tira(/\btoda(?:s)? (?:as )?semanas?\b|\bsemanalmente\b/)) rep = 'semana';
+    else if (tira(/\btodos? (?:os )?dias?\b|\bdiariamente\b/)) rep = 'dia';
+  }
+  // ----- aviso (agenda) -----
+  let aviso;
+  { const m = tira(/\b(?:(?:me )?avis[ae] |lembr[ae] )?(\d+|uma?|meia) ?(min(?:utos?)?|h(?:oras?)?|dias?) (?:de )?antes\b/);
+    if (m) {
+      let q = m[1] === 'meia' ? 0.5 : /^\d/.test(m[1]) ? +m[1] : 1;
+      const min = m[2].startsWith('d') ? q * 1440 : m[2].startsWith('h') ? q * 60 : q;
+      aviso = [0, 15, 30, 60, 1440].reduce((a, b) => Math.abs(b - min) < Math.abs(a - min) ? b : a);
+    } else if (tira(/\bna hora\b/)) aviso = 0; }
+  // ----- hora -----
+  let hora = null;
+  { let m;
+    if (tira(/\bmeio-?dia\b/)) hora = '12:00';
+    else if (tira(/\bmeia-?noite\b/)) hora = '00:00';
+    else {
+      const r = /\b(?:as |a |por volta das )?(\d{1,2})(?::(\d{2})|h(\d{2})?|\s?horas?)?(?:\s+(?:e\s+)?(meia))?(?:\s+da\s+(manha|tarde|noite))?\b/g;
+      while ((m = r.exec(n))) {
+        if (usado.slice(m.index, m.index + m[0].length).some(Boolean)) continue;
+        const marca = /:|\dh|hora|manha|tarde|noite/.test(m[0]), prefixo = /^(as|a|por) /.test(m[0]);
+        if (!(marca || (prefixo && ehAgenda))) continue;
+        let h = +m[1], mi = +(m[2] || m[3] || 0); if (m[4]) mi = 30;
+        if ((m[5] === 'tarde' || m[5] === 'noite') && h < 12) h += 12;
+        if (h > 23 || mi > 59) continue;
+        hora = `${pad(h)}:${pad(mi)}`;
+        for (let i = m.index; i < m.index + m[0].length; i++) usado[i] = true;
+        break;
+      }
+    } }
+  // ----- data -----
+  const futuro = ehAgenda;
+  let data = null;
+  { let m;
+    if (tira(/\bdepois de amanha\b/)) data = addD(hoje, 2);
+    else if (tira(/\bamanha\b/)) data = addD(hoje, 1);
+    else if (tira(/\banteontem\b/)) data = addD(hoje, -2);
+    else if (tira(/\bontem\b/)) data = addD(hoje, -1);
+    else if (tira(/\bhoje\b/)) data = hoje;
+    else if (tira(/\b(?:na |a )?(?:semana que vem|proxima semana)\b/)) data = addD(hoje, 7);
+    else if ((m = tira(/\b(?:dia )?(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/))) {
+      let y = m[3] ? +m[3] : +hoje.slice(0, 4); if (y < 100) y += 2000;
+      data = `${y}-${pad(+m[2])}-${pad(+m[1])}`;
+      if (!m[3] && futuro && data < hoje) data = `${y + 1}-${pad(+m[2])}-${pad(+m[1])}`;
+    }
+    else if ((m = tira(new RegExp(`\\b(?:no )?dia (\\d{1,2})(?: de (${MESES_N.join('|')}))?\\b`)))) {
+      const d = +m[1];
+      if (m[2]) { let ym = `${hoje.slice(0, 4)}-${pad(MESES_N.indexOf(m[2]) + 1)}`; if (futuro && dateIn(ym, d) < hoje) ym = addM(ym, 12); if (!futuro && dateIn(ym, d) > hoje) ym = addM(ym, -12); data = dateIn(ym, d); }
+      else { let ym = hoje.slice(0, 7); if (futuro && dateIn(ym, d) < hoje) ym = addM(ym, 1); if (!futuro && dateIn(ym, d) > hoje) ym = addM(ym, -1); data = dateIn(ym, d); }
+    }
+    else if ((m = tira(/\b(?:n[ao] |nest[ae] |ness[ae] |proxim[ao] |na proxima |no proximo )?(segunda|terca|quarta|quinta|sexta|sabado|domingo)(?:-feira| feira)?\b/))) {
+      const alvo = DIAS_SEM.indexOf(m[1]), [y, mo, d] = hoje.split('-').map(Number), dw = new Date(y, mo - 1, d).getDay();
+      data = futuro ? addD(hoje, (alvo - dw + 7) % 7) : addD(hoje, -((dw - alvo + 7) % 7));
+    } }
+
+  const limpa = t => {
+    let x = ' ' + t.replace(/[,.;:!?]+/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+    const cola = /^ (?:(?:me )?lembr\w*|lembrete|tarefa|anota(?:r)?|agenda|marcar?|registr\w*|gastei|paguei|comprei|recebi|ganhei|foi|e|de|do|da|dos|das|no|na|nos|nas|com|em|um|uma|o|a|os|as|que|para|pra|pelo|pela|via|por) /i;
+    const colaF = / (?:e|de|do|da|dos|das|no|na|nos|nas|com|em|um|uma|o|a|os|as|que|para|pra|pelo|pela|via|por|reais?|contos?|r\$) $/i;
+    for (let i = 0; i < 8; i++) { const a = x; x = x.replace(cola, ' ').replace(colaF, ' '); if (a === x) break; }
+    x = x.trim();
+    return x ? x[0].toUpperCase() + x.slice(1) : '';
+  };
+  const resto = () => orig.split('').map((c, i) => usado[i] ? ' ' : c).join('');
+
+  // ================= AGENDA =================
+  if (ehAgenda) {
+    const tarefa = tem(/\b(me lembr\w*|lembr(ar|e|ete)|tarefa|preciso|fazer)\b/) || !hora;
+    if (rep === 'semana' && semRep != null && !data) { const [y, mo, d] = hoje.split('-').map(Number), dw = new Date(y, mo - 1, d).getDay(); data = addD(hoje, (semRep - dw + 7) % 7); }
+    if (rep === 'mes' && diaRep && !data) { let ym = hoje.slice(0, 7); if (dateIn(ym, diaRep) < hoje) ym = addM(ym, 1); data = dateIn(ym, diaRep); }
+    if ((hora || rep !== 'nunca') && !data) { data = hoje; if (hora && new Date(`${hoje}T${hora}`) < new Date()) data = addD(hoje, 1); }
+    tira(/\b(?:me lembr\w*(?: de| que)?|lembrete(?: de)?|lembrar(?: de)?|tarefa:?|agenda:?|compromisso:?|anota(?:r)? na agenda)\b/, false);
+    const titulo = limpa(resto());
+    return { tipo: 'agenda', campos: { tipo: tarefa ? 'tarefa' : 'evento', titulo, data, hora, rep, ...(tarefa ? {} : { aviso: aviso ?? 15 }) } };
+  }
+
+  // ================= LANÇAMENTO =================
+  const entrada = tem(/\b(recebi|ganhei|entrou|caiu|salario|reembolso|me pagou|me pagaram|me devolveu|me mandou)\b/);
+  let parcelas = 1;
+  { const m = tira(/\b(?:em |parcelad[oa] em )?(\d{1,2}) ?(?:x|vezes)\b/); if (m && +m[1] > 1) parcelas = Math.min(48, +m[1]); }
+  let valor = 0;
+  { const m = tira(/r\$ ?(\d[\d.]*(?:,\d{1,2})?)|\b(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?|\d+(?:\.\d{1,2})?)\b(?: ?(?:reais|real|contos?|pilas?|r\$))?/);
+    if (m) { const t = m[1] || m[2]; valor = parseFloat(t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : /\.\d{3}$/.test(t) ? t.replace(/\./g, '') : t) || 0; } }
+  let pag = null;
+  if (!entrada) {
+    for (const c of S.cards) {
+      const nn = norm(c.nome);
+      const toks = nn.split(/\s+/).filter(t => t.length >= 4 && !['cartao', 'card', 'credito'].includes(t));
+      const re = new RegExp(`\\b(?:no |na |pelo |com o |com a )?(?:cartao )?(?:${[nn, ...toks].map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`);
+      if (tira(re)) { pag = c.id; break; }
+    }
+    if (!pag) { if (tira(/\b(?:no |via |pelo |de )?pix\b/)) pag = 'pix'; else if (tira(/\b(?:no |na |via )?debito\b/)) pag = 'debito'; else if (tira(/\b(?:em |no )?(?:dinheiro|especie)\b/)) pag = 'dinheiro'; }
+    if (!pag && tira(/\b(?:no |na )?(?:cartao(?: de credito)?|credito)\b/)) { const meus = S.cards.filter(c => c.afeta); if (meus.length === 1) pag = meus[0].id; }
+  } else if (tira(/\b(?:no |via |pelo |de )?pix\b/)) pag = 'pixrec';
+  // categoria: nomes de subcategorias e categorias primeiro, depois palavras-chave
+  const tipoL = entrada ? 'entrada' : 'gasto', cats = catsDe(tipoL);
+  let cat = null, sub = null;
+  const palavras = new Set(norm(resto()).split(/[^a-z0-9]+/).filter(Boolean));
+  const frase = ' ' + norm(resto()).replace(/[^a-z0-9]+/g, ' ') + ' ';
+  for (const c of cats) for (const x of c.subs || []) if (!cat && frase.includes(' ' + norm(x.nome) + ' ')) { cat = c.id; sub = x.id; }
+  if (!cat) for (const c of cats) if (frase.includes(' ' + norm(c.nome).replace(/[^a-z0-9]+/g, ' ').trim() + ' ')) { cat = c.id; break; }
+  if (!cat && entrada && pag === 'pixrec' && cats.some(c => c.id === 'pixrec')) cat = 'pixrec';
+  if (entrada) pag = null;
+  if (!cat) { const mapa = entrada ? PAL_ENT : PAL_CAT; for (const [id, ps] of Object.entries(mapa)) if (cats.some(c => c.id === id) && ps.split(' ').some(p => palavras.has(p))) { cat = id; break; } }
+  if (!cat) { const outro = cats.find(c => c.id === (entrada ? 'outrase' : 'outros')); if (outro) cat = outro.id; }
+  let dt = data || hoje;
+  const quando = `${dt}T${hora || (dt === hoje ? nowStr().slice(11) : '12:00')}`;
+  return { tipo: 'lanc', campos: { tipo: tipoL, valor, ...(cat ? { cat } : {}), sub, ...(pag ? { pag } : {}), data: quando, desc: limpa(resto()), parcelas } };
+}
+function abrirFrase(txt) {
+  if (!String(txt || '').trim()) return;
+  const r = entender(txt);
+  if (r.tipo === 'agenda') { formAg(null); Object.assign(G, r.campos); drawAg(); }
+  else { formL(null); Object.assign(F, r.campos); F._el = null; F._focou = true; drawFormL(); }
+}
+const temVoz = () => !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+let REC = null;
+function ouvir(btn) {
+  if (REC) { REC.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const inp = btn.closest('.quick').querySelector('input');
+  try {
+    REC = new SR(); REC.lang = 'pt-BR'; REC.interimResults = true; REC.maxAlternatives = 1;
+    let final = '';
+    REC.onresult = e => { let t = ''; for (const r of e.results) t += r[0].transcript; inp.value = t; final = t; };
+    REC.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('Microfone bloqueado. Use o microfone do teclado.'); };
+    REC.onend = () => { btn.classList.remove('ouvindo'); REC = null; if (final.trim()) { abrirFrase(final); inp.value = ''; } };
+    REC.start(); btn.classList.add('ouvindo');
+  } catch (e) { REC = null; btn.classList.remove('ouvindo'); toast('Voz indisponível aqui. Use o microfone do teclado.'); inp.focus(); }
+}
+const barraRapida = ex => `<form class="quick" autocomplete="off"><input class="qtxt" placeholder="${esc(ex)}" enterkeyhint="go" autocapitalize="sentences" aria-label="Escreva o que aconteceu">
+  ${temVoz() ? `<button type="button" data-act="ouvir" aria-label="Falar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>` : ''}
+  <button type="submit" class="go" aria-label="Preencher"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>`;
+
 /* ---------- Agenda ---------- */
 const AVISOS = [[0, 'Na hora'], [15, '15 min antes'], [30, '30 min antes'], [60, '1 h antes'], [1440, '1 dia antes'], [null, 'Sem aviso']];
 const REPS = [['nunca', 'Não repete'], ['dia', 'Todo dia'], ['semana', 'Toda semana'], ['mes', 'Todo mês']];
@@ -673,6 +857,7 @@ function vAgenda() {
   for (let i = 2; i <= 7; i++) { const d = addD(hoje, i); dias += bloco(nomeDia(d), naData(d), d); }
   const prox = S.agenda.filter(it => it.tipo === 'evento' && ocorr(it, addD(hoje, 8), addD(hoje, 60)).length).length;
   return `<div class="top"><h1>Agenda</h1></div>
+  ${barraRapida('Ex.: me lembra amanhã às 10 de pagar o boleto')}
   ${bannerNotif()}
   <div class="cols"><div>
   ${bloco('Atrasadas', atrasadas, null)}
@@ -1033,9 +1218,9 @@ function vAjustes() {
   ${blocoNotif()}
   <h2>Atalho da Siri</h2>
   <p class="sub" style="margin:0 2px 6px">No app Atalhos, crie um atalho com estas ações:</p>
-  <ol class="sub" style="margin:0 2px 6px 20px;line-height:1.6"><li>"Pedir Entrada", tipo Número, com a pergunta "Quanto?"</li><li>"Abrir URLs", com o endereço abaixo seguido da variável "Entrada fornecida"</li></ol>
-  <code class="code">webapp://${esc(location.host + location.pathname)}?novo=gasto&valor=</code>
-  <p class="sub" style="margin:0 2px 0">Dê ao atalho o nome "Registrar gasto". Aí é só falar "E aí Siri, registrar gasto", ou pôr o atalho na tela de bloqueio. O Finanças abre com o valor já preenchido. Para já escolher a categoria, acrescente <b>&cat=Alimentação</b> no fim do endereço.</p>
+  <ol class="sub" style="margin:0 2px 6px 20px;line-height:1.6"><li>"Pedir Entrada", tipo Texto, com a pergunta "O que você quer registrar?"</li><li>"Codificar URL"</li><li>"URL", com o endereço abaixo seguido da variável "URL codificada"</li><li>"Abrir URLs"</li></ol>
+  <code class="code">webapp://${esc(location.host + location.pathname)}?frase=</code>
+  <p class="sub" style="margin:0 2px 0">Dê ao atalho o nome "Anotar". Aí é só falar "E aí Siri, anotar" e responder algo como "35 almoço no pix" ou "me lembra amanhã às 10 de pagar o boleto". O Finanças abre com tudo preenchido para você conferir.</p>
   <h2>Backup</h2>
   <p class="sub" style="margin:0 2px 10px">Seus dados ficam só neste iPhone. Exporte um backup de vez em quando e guarde no iCloud Drive ou no Arquivos. ${S.ultimoBackup ? `Último backup: ${dm(S.ultimoBackup)}/${S.ultimoBackup.slice(0, 4)}.` : 'Nenhum backup feito ainda.'}</p>
   <div class="actions"><button class="btn" data-act="exportar">Exportar backup</button><button class="btn" data-act="importar">Importar backup</button></div>
@@ -1045,7 +1230,7 @@ function vAjustes() {
   <div class="actions"><button class="btn" data-act="csv" data-id="mes">Este mês</button><button class="btn" data-act="csv" data-id="ano">Este ano</button><button class="btn" data-act="csv" data-id="tudo">Tudo</button></div>
   <h2>Zona de perigo</h2>
   <button class="btn danger" data-act="apagarTudo">Apagar todos os dados</button>
-  <p class="sub" style="margin:28px 2px 0">Finanças, versão 7</p>`;
+  <p class="sub" style="margin:28px 2px 0">Finanças, versão 8</p>`;
 }
 
 /* =========================================================
@@ -1459,6 +1644,7 @@ function abrirPorLink() {
   const q = new URLSearchParams(location.search);
   const ir = q.get('ir');
   if (ir && ['home', 'dia', 'agenda', 'resumo', 'faturas'].includes(ir)) { history.replaceState(null, '', location.pathname); ui.tab = ir; render(); return; }
+  if (q.has('frase')) { history.replaceState(null, '', location.pathname); abrirFrase(q.get('frase')); return; }
   if (!q.has('novo') && !q.has('valor')) return;
   history.replaceState(null, '', location.pathname);
   formL(null);
@@ -1689,6 +1875,7 @@ const A = {
   tab: id => { ui.tab = id; ui.selCat = null; ui.selBar = null; render(); scrollTo(0, 0); },
   novo: () => ui.tab === 'agenda' ? formAg(null) : formL(null),
   agNovo: () => formAg(null),
+  ouvir: (id, el) => ouvir(el),
   agEdit: id => formAg(S.agenda.find(x => x.id === id)),
   agTipo: t => { lerAg(); G.tipo = t; if (t === 'tarefa' && G.novo) { G.hora = null; } else if (t === 'evento' && !G.hora) { const h = new Date(); h.setHours(h.getHours() + 1); G.hora = `${pad(h.getHours())}:00`; G.data ||= todayStr(); } drawAg(); },
   agAviso: v => { lerAg(); G.aviso = v === 'x' ? null : +v; drawAg(); },
@@ -1875,7 +2062,11 @@ const A = {
 };
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
-  const fn = A[el.dataset.act]; if (fn) { e.preventDefault(); fn(el.dataset.id); }
+  const fn = A[el.dataset.act]; if (fn) { e.preventDefault(); fn(el.dataset.id, el); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target.closest('.quick'); if (!f) return;
+  e.preventDefault(); const inp = f.querySelector('input'); const t = inp.value; inp.value = ''; inp.blur(); abrirFrase(t);
 });
 document.addEventListener('input', e => { if (e.target.id === 'bq') { ui.bq = e.target.value; $('#bres').innerHTML = resultadosBusca(); } });
 document.addEventListener('change', e => {
